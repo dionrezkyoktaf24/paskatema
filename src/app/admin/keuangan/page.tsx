@@ -66,7 +66,12 @@ function formatDate(value: string): string {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  // toISOString() pakai UTC — tanpa koreksi offset ini, di zona waktu
+  // UTC+ (mis. WIB) tanggal defaultnya bisa mundur satu hari di jam-jam
+  // dini hari (UTC belum ganti tanggal).
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10);
 }
 
 export default function AdminKeuanganPage() {
@@ -92,12 +97,16 @@ export default function AdminKeuanganPage() {
   });
 
   const periods = useQuery({
-    queryKey: ["periods-for-select"],
+    // Sama dengan query key yang dipakai PeriodeTab (useCrudResource
+    // "admin-period") supaya mutasi di sana ikut invalidate cache ini.
+    queryKey: ["admin-period"],
     queryFn: async () => (await apiClient.get<PeriodOption[]>("/period")).data,
   });
 
   const events = useQuery({
-    queryKey: ["events-for-select"],
+    // Sama dengan query key yang dipakai halaman Event (useCrudResource
+    // "admin-event") supaya mutasi di sana ikut invalidate cache ini.
+    queryKey: ["admin-event"],
     queryFn: async () => (await apiClient.get<EventOption[]>("/events")).data,
   });
 

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Loader2, Search } from "lucide-react";
 
 import { apiClient } from "@/lib/api";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Modal } from "@/components/admin/Modal";
 
 interface MemberItem {
@@ -23,14 +24,15 @@ interface MemberListResponse {
 export function AnggotaTab() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [page, setPage] = useState(1);
 
   const list = useQuery({
-    queryKey: ["admin-members", search, page],
+    queryKey: ["admin-members", debouncedSearch, page],
     queryFn: async () =>
       (
         await apiClient.get<MemberListResponse>("/user", {
-          params: { search: search || undefined, page, limit: 15 },
+          params: { search: debouncedSearch || undefined, page, limit: 15 },
         })
       ).data,
   });
@@ -115,7 +117,7 @@ export function AnggotaTab() {
                 <td className="px-5 py-4 font-medium text-slate-900">{item.name}</td>
                 <td className="px-5 py-4 text-slate-600">{item.email}</td>
                 <td className="px-5 py-4 text-slate-600">
-                  {item.angkatan ? `Angkatan ${item.angkatan}` : "—"}
+                  {item.angkatan !== null ? `Angkatan ${item.angkatan}` : "—"}
                 </td>
                 <td className="px-5 py-4">
                   <span

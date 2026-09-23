@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 
 import { apiClient } from "@/lib/api";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export interface UserOption {
   id: string;
@@ -27,16 +28,17 @@ export function UserPicker({
   onChange: (user: UserOption | null) => void;
 }) {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
 
   const results = useQuery({
-    queryKey: ["user-picker-search", query],
+    queryKey: ["user-picker-search", debouncedQuery],
     queryFn: async () =>
       (
         await apiClient.get<UserListResponse>("/user", {
-          params: { search: query, limit: 8 },
+          params: { search: debouncedQuery, limit: 8 },
         })
       ).data,
-    enabled: query.trim().length > 1,
+    enabled: debouncedQuery.trim().length > 1,
   });
 
   if (value) {

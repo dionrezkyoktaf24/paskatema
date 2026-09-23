@@ -23,7 +23,7 @@ interface StructureFormValues {
   userId: string;
   positionId: string;
   periodId: string;
-  imageId?: string;
+  imageId?: string | null;
 }
 
 interface PeriodOption {
@@ -45,12 +45,15 @@ export function StrukturTab() {
   >("admin-structure", "/structure");
 
   const periods = useQuery({
-    queryKey: ["periods-for-select"],
+    // Sama dengan query key PeriodeTab ("admin-period") supaya mutasi di sana
+    // ikut invalidate cache ini.
+    queryKey: ["admin-period"],
     queryFn: async () => (await apiClient.get<PeriodOption[]>("/period")).data,
   });
 
   const positions = useQuery({
-    queryKey: ["positions-for-select"],
+    // Sama dengan query key JabatanTab ("admin-position").
+    queryKey: ["admin-position"],
     queryFn: async () => (await apiClient.get<PositionOption[]>("/position")).data,
   });
 
@@ -92,7 +95,7 @@ export function StrukturTab() {
       userId: user.id,
       positionId,
       periodId,
-      imageId: image?.id,
+      imageId: image?.id ?? null,
     };
 
     try {

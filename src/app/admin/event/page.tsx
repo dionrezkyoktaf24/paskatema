@@ -23,7 +23,7 @@ interface EventFormValues {
   description: string;
   date: string;
   location?: string;
-  posterId?: string;
+  posterId?: string | null;
 }
 
 function formatDate(value: string): string {
@@ -84,7 +84,7 @@ export default function AdminEventPage() {
       description,
       date: new Date(date).toISOString(),
       location: location || undefined,
-      posterId: poster?.id,
+      posterId: poster?.id ?? null,
     };
 
     try {

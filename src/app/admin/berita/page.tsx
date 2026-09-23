@@ -22,7 +22,7 @@ interface NewsItem {
 interface NewsFormValues {
   title: string;
   content: string;
-  coverId?: string;
+  coverId?: string | null;
 }
 
 function formatDate(value: string): string {
@@ -68,7 +68,7 @@ export default function AdminBeritaPage() {
     const payload: NewsFormValues = {
       title,
       content,
-      coverId: cover?.id,
+      coverId: cover?.id ?? null,
     };
 
     try {

@@ -21,7 +21,7 @@ interface AchievementFormValues {
   title: string;
   year: number;
   description?: string;
-  imageId?: string;
+  imageId?: string | null;
 }
 
 export default function AdminPrestasiPage() {
@@ -64,7 +64,7 @@ export default function AdminPrestasiPage() {
       title,
       year,
       description: description || undefined,
-      imageId: image?.id,
+      imageId: image?.id ?? null,
     };
 
     try {
