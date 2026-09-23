@@ -9,22 +9,31 @@ import { apiClient } from "@/lib/api";
 interface PublicMember {
   id: string;
   name: string;
-  angkatan: number;
+  // Backend hanya mengembalikan anggota dengan angkatan terisi (lihat
+  // findPublicDirectory di user.service.ts), tapi tipe kolomnya sendiri
+  // nullable — jaga null di sini juga supaya perubahan filter di backend
+  // nanti tidak diam-diam nampilkan "Angkatan null" ke publik.
+  angkatan: number | null;
   avatarUrl: string | null;
   position: string | null;
 }
 
 export default function AnggotaPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["public-members"],
     queryFn: async () => (await apiClient.get<PublicMember[]>("/user/public")).data,
   });
 
-  const members = useMemo(() => data ?? [], [data]);
+  const members = useMemo(
+    () => (data ?? []).filter((m): m is PublicMember & { angkatan: number } => m.angkatan !== null),
+    [data],
+  );
 
   const batches = useMemo(() => {
-    const set = new Set(members.map((m) => `Angkatan ${m.angkatan}`));
-    return ["Semua Angkatan", ...Array.from(set).sort().reverse()];
+    const angkatanNumbers = Array.from(new Set(members.map((m) => m.angkatan))).sort(
+      (a, b) => b - a,
+    );
+    return ["Semua Angkatan", ...angkatanNumbers.map((n) => `Angkatan ${n}`)];
   }, [members]);
 
   const [selected, setSelected] = useState<string>("Semua Angkatan");
@@ -40,7 +49,7 @@ export default function AnggotaPage() {
         <h1 className="text-3xl font-semibold">Anggota</h1>
         <p className="mt-2 text-slate-600">Pilih angkatan untuk melihat daftar anggota.</p>
 
-        {!isLoading && members.length > 0 && (
+        {!isLoading && !isError && members.length > 0 && (
           <div className="mt-6 flex flex-wrap gap-3">
             {batches.map((b) => (
               <button
@@ -58,7 +67,13 @@ export default function AnggotaPage() {
           <p className="mt-10 text-center text-sm text-slate-400">Memuat data anggota...</p>
         )}
 
-        {!isLoading && members.length === 0 && (
+        {!isLoading && isError && (
+          <p className="mt-10 text-center text-sm text-rose-500">
+            Gagal memuat data anggota. Coba muat ulang halaman.
+          </p>
+        )}
+
+        {!isLoading && !isError && members.length === 0 && (
           <p className="mt-10 text-center text-sm text-slate-400">
             Belum ada data anggota yang ditampilkan.
           </p>
