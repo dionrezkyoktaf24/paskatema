@@ -1,0 +1,32 @@
+services:
+  paskatema-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paskatema_web
+    restart: unless-stopped
+    networks:
+      - proxy # network Traefik untuk routing publik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+
+      # --- HTTP router: redirect ke HTTPS ---
+      - "traefik.http.routers.paskatema-web-http.rule=Host(`paskatema.smktelkom-mlg.sch.id`)"
+      - "traefik.http.routers.paskatema-web-http.entrypoints=web"
+      - "traefik.http.routers.paskatema-web-http.middlewares=redirect-https"
+
+      # --- HTTPS router ---
+      # Catch-all untuk domain ini (priority rendah/default) — request yang
+      # cocok dengan PathPrefix(/api) di backend (paskatema-api, priority=100)
+      # ditangani backend duluan; sisanya (semua halaman website) jatuh ke sini.
+      - "traefik.http.routers.paskatema-web.rule=Host(`paskatema.smktelkom-mlg.sch.id`)"
+      - "traefik.http.routers.paskatema-web.entrypoints=websecure"
+      - "traefik.http.routers.paskatema-web.tls.certresolver=le"
+
+      # Container app listen di port 3000 (default next start / server.js standalone)
+      - "traefik.http.services.paskatema-web.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
