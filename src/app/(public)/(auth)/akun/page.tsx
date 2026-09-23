@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api";
 import { getToken, setAuth } from "@/lib/auth-storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { authInputClass } from "@/components/auth/AuthCard";
+import { MemberGallery } from "@/components/auth/MemberGallery";
 
 interface Profile {
   id: string;
@@ -79,6 +80,8 @@ export default function AkunPage() {
             {profile.isError ? "Gagal memuat profil." : "Memuat profil..."}
           </p>
         )}
+
+        {profile.data && <MemberGallery angkatan={profile.data.angkatan} />}
       </div>
     </main>
   );

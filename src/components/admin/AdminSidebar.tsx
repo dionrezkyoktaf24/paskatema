@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Vote,
   LogOut,
+  Images,
 } from "lucide-react";
 
 import type { AuthUser } from "@/lib/auth-storage";
@@ -29,6 +30,7 @@ const navGroups = [
       { href: "/admin/event", label: "Event", icon: CalendarDays },
       { href: "/admin/prestasi", label: "Prestasi", icon: Trophy },
       { href: "/admin/ebook", label: "E-Book", icon: BookOpen },
+      { href: "/admin/galeri", label: "Galeri", icon: Images },
     ],
   },
   {

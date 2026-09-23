@@ -9,15 +9,17 @@ export interface MediaItem {
   createdAt: string;
 }
 
+/** PDF (E-Book) punya endpoint sendiri; gambar lewat /media/upload. */
 export async function uploadMedia(file: File): Promise<MediaItem> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await apiClient.post<MediaItem>(
-    "/media/upload-document",
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } },
-  );
+  const endpoint =
+    file.type === "application/pdf" ? "/media/upload-document" : "/media/upload";
+
+  const response = await apiClient.post<MediaItem>(endpoint, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
   return response.data;
 }
