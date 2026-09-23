@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { ArrowRight, Bookmark, ShieldCheck, FileText } from "lucide-react";
 import { Footer } from "@/components/footer/Footer";
+
+export const metadata: Metadata = {
+  title: "Pusat Administrasi",
+  description: "Materi diklat dan dokumen administrasi untuk anggota Paskatema SMK Telkom Malang.",
+  alternates: { canonical: "/administrasi" },
+};
 
 export default function AdministrasiPage() {
   return (

@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { ArrowRight, CircleDot, Send } from "lucide-react";
 import { Footer } from "@/components/footer/Footer";
+
+export const metadata: Metadata = {
+  title: "Pendaftaran",
+  description: "Informasi dan cara mendaftar menjadi anggota Paskatema SMK Telkom Malang.",
+  alternates: { canonical: "/pendaftaran" },
+};
 
 export default function PendaftaranPage() {
   return (

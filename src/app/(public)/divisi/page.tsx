@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 
 const divisionCards = [
@@ -40,6 +41,12 @@ const divisionCards = [
 ];
 
 const filterTabs = ["Semua", "Teknis", "Support"];
+
+export const metadata: Metadata = {
+  title: "Divisi",
+  description: "Divisi-divisi di Paskatema SMK Telkom Malang beserta tugas dan kegiatannya.",
+  alternates: { canonical: "/divisi" },
+};
 
 export default function DivisiPage() {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { Footer } from "@/components/footer/Footer";
 
@@ -74,6 +75,12 @@ const divisionCards = [
 ];
 
 const filterTabs = ["Semua", "Teknis", "Support"];
+
+export const metadata: Metadata = {
+  title: "Struktur Organisasi",
+  description: "Struktur kepengurusan Paskatema SMK Telkom Malang: komandan, pembina, dan jajaran pengurus.",
+  alternates: { canonical: "/struktur" },
+};
 
 export default function StrukturPage() {
   return (
