@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks } from "@/lib/constants";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { LogoBadge } from "@/components/ui/LogoBadge";
+import { AuthMenu, MobileAuthLinks } from "@/components/navbar/AuthMenu";
 
 const links = navLinks;
 
@@ -53,9 +54,7 @@ export function Navbar() {
           <Link href="/pendaftaran" className="inline-flex items-center justify-center rounded-full border border-rose-600 bg-rose-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700">
             Pendaftaran
           </Link>
-          <button type="button" className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-600 transition hover:border-slate-300 hover:text-slate-900" aria-label="Open menu">
-            <ChevronDown size={18} />
-          </button>
+          <AuthMenu />
         </div>
 
         <button
@@ -81,9 +80,10 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
-            <Link href="#registration" className="inline-flex items-center justify-center rounded-full border border-rose-600 bg-rose-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700">
+            <Link href="/pendaftaran" onClick={() => setIsOpen(false)} className="inline-flex items-center justify-center rounded-full border border-rose-600 bg-rose-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700">
               Pendaftaran
             </Link>
+            <MobileAuthLinks onNavigate={() => setIsOpen(false)} />
           </div>
         </motion.div>
       ) : null}

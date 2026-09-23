@@ -22,8 +22,14 @@ apiClient.interceptors.response.use(
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
     if (status === 401 && typeof window !== "undefined") {
       clearAuth();
-      if (!window.location.pathname.startsWith("/admin/login")) {
-        window.location.href = "/admin/login";
+      const { pathname } = window.location;
+      // Halaman auth menampilkan error 401 (mis. password salah) sendiri;
+      // redirect di sini akan me-reload halaman dan menghapus pesan error.
+      const isAuthPage = ["/admin/login", "/login", "/daftar"].includes(pathname);
+      if (!isAuthPage) {
+        window.location.href = pathname.startsWith("/admin")
+          ? "/admin/login"
+          : "/login";
       }
     }
     return Promise.reject(error);

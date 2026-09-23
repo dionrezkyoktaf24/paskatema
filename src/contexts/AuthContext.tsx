@@ -26,11 +26,20 @@ interface LoginResponse {
   user: AuthUser;
 }
 
+export interface RegisterInput {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
 interface AuthContextValue {
   user: AuthUser | null;
   /** true selama render server / sebelum localStorage terbaca di browser. */
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  /** Mengembalikan user yang login supaya pemanggil bisa redirect sesuai role. */
+  login: (email: string, password: string) => Promise<AuthUser>;
+  register: (data: RegisterInput) => Promise<AuthUser>;
   logout: () => void;
 }
 
@@ -50,13 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = useMemo(() => parseUser(rawUser), [rawUser]);
   const isLoading = rawUser === undefined;
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<AuthUser> => {
     try {
       const response = await apiClient.post<LoginResponse>("/auth/login", {
         email,
         password,
       });
       setAuth(response.data.access_token, response.data.user);
+      return response.data.user;
     } catch (error) {
       if (error instanceof AxiosError && error.response?.status === 401) {
         throw new Error("Email atau password salah");
@@ -68,12 +78,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const register = useCallback(
+    async (data: RegisterInput): Promise<AuthUser> => {
+      try {
+        await apiClient.post("/auth/register", {
+          ...data,
+          phone: data.phone || undefined,
+        });
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          const status = error.response?.status;
+          if (status === 409) throw new Error("Email sudah terdaftar");
+          if (status === 429) {
+            throw new Error("Terlalu banyak percobaan. Tunggu 1 menit.");
+          }
+          if (status === 400) {
+            throw new Error("Data tidak valid. Password minimal 8 karakter.");
+          }
+        }
+        throw new Error("Gagal mendaftar. Coba lagi beberapa saat.");
+      }
+      return login(data.email, data.password);
+    },
+    [login],
+  );
+
   const logout = useCallback(() => {
     clearAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
