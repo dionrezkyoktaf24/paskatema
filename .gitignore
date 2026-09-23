@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# dokumen internal — jangan pernah di-commit
+/docs
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
