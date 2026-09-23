@@ -9,6 +9,7 @@ export const PUBLIC_ROUTES = [
   "/profil",
   "/struktur",
   "/divisi",
+  "/berita",
   "/anggota",
   "/galeri",
   "/administrasi",

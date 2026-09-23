@@ -10,10 +10,13 @@ export function MediaPicker({
   label,
   value,
   onChange,
+  accept,
 }: {
   label: string;
   value: MediaItem | null;
   onChange: (media: MediaItem | null) => void;
+  /** Atribut accept input file, mis. "image/*" untuk foto saja. */
+  accept?: string;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +74,7 @@ export function MediaPicker({
               {value ? "Ganti file" : "Upload baru"}
               <input
                 type="file"
+                accept={accept}
                 className="hidden"
                 onChange={handleFileChange}
                 disabled={isUploading}

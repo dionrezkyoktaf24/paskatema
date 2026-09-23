@@ -28,7 +28,7 @@ export function Navbar() {
           PASKATEMA
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-4 lg:gap-6 xl:gap-8 md:flex">
           {links.map((item) => {
             const isActive = pathname === item.href;
             return (

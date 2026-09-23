@@ -2,6 +2,7 @@ export const navLinks = [
   { label: "Beranda", href: "/" },
   { label: "Profil & Sejarah", href: "/profil" },
   { label: "Struktur & Divisi", href: "/struktur" },
+  { label: "Berita", href: "/berita" },
   { label: "Anggota", href: "/anggota" },
   { label: "Galeri", href: "/galeri" },
   { label: "Administrasi", href: "/administrasi" },

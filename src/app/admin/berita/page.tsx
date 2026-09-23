@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { Modal } from "@/components/admin/Modal";
 import { MediaPicker } from "@/components/admin/MediaPicker";
+import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import type { MediaItem } from "@/services/media";
 
 interface NewsItem {
@@ -43,12 +44,14 @@ export default function AdminBeritaPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [cover, setCover] = useState<MediaItem | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   function openCreate() {
     setTitle("");
     setContent("");
     setCover(null);
+    setShowPreview(false);
     setFormError(null);
     setEditing("new");
   }
@@ -57,6 +60,7 @@ export default function AdminBeritaPage() {
     setTitle(item.title);
     setContent(item.content);
     setCover(item.cover);
+    setShowPreview(false);
     setFormError(null);
     setEditing(item);
   }
@@ -175,18 +179,49 @@ export default function AdminBeritaPage() {
               />
             </label>
 
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-700">Konten</span>
-              <textarea
-                required
-                rows={6}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
-              />
-            </label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-700">
+                  Isi berita (Markdown)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview((v) => !v)}
+                  className="text-xs font-semibold text-rose-600 hover:underline"
+                >
+                  {showPreview ? "Kembali menulis" : "Pratinjau"}
+                </button>
+              </div>
+              {showPreview ? (
+                <div className="max-h-72 min-h-32 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  {content.trim() ? (
+                    <MarkdownContent>{content}</MarkdownContent>
+                  ) : (
+                    <p className="text-sm text-slate-400">Belum ada isi.</p>
+                  )}
+                </div>
+              ) : (
+                <textarea
+                  required
+                  rows={8}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder={"## Judul bagian\n\nTulis dengan **Markdown**: *miring*, daftar, [tautan](https://...)"}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                />
+              )}
+              <p className="text-xs text-slate-400">
+                Disimpan sebagai file .md di server. Gambar di dalam isi tidak ditampilkan —
+                berita memakai satu foto di bawah.
+              </p>
+            </div>
 
-            <MediaPicker label="Cover (opsional)" value={cover} onChange={setCover} />
+            <MediaPicker
+              label="Foto berita (1 foto, opsional)"
+              value={cover}
+              onChange={setCover}
+              accept="image/jpeg,image/png,image/webp"
+            />
 
             {formError && <p className="text-sm text-rose-600">{formError}</p>}
 
