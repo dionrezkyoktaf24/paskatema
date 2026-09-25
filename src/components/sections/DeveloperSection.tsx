@@ -60,7 +60,7 @@ export function DeveloperSection() {
             className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white p-8 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-slate-100">
-              <Image src="/dev22.jpeg" alt="The Architect" width={360} height={480} className="h-[28rem] w-full object-cover" />
+              <Image src="/dev44.jpeg" alt="The Architect" width={360} height={480} className="h-[28rem] w-full object-cover" />
             </div>
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Syafi Aqil</p>
             <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">UI/UX Designer</h2>
@@ -107,7 +107,7 @@ export function DeveloperSection() {
             className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white p-8 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-slate-100">
-              <Image src="/dev22.jpeg" alt="The Strategist" width={360} height={480} className="h-[28rem] w-full object-cover" />
+              <Image src="/dev33.jpeg" alt="The Strategist" width={360} height={480} className="h-[28rem] w-full object-cover" />
             </div>
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Alif Fahreza Bintang M</p>
             <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">Backend Specialist</h2>
