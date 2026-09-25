@@ -59,6 +59,9 @@ export function AuthMenu() {
           <Link href="/akun" className={itemClass} onClick={() => setOpen(false)}>
             Akun Saya
           </Link>
+          <Link href="/forum" className={itemClass} onClick={() => setOpen(false)}>
+            Forum
+          </Link>
           {canUsePanel(user.role) && (
             <Link href={homeForRole(user.role)} className={itemClass} onClick={() => setOpen(false)}>
               {panelLabel(user.role)}
@@ -105,6 +108,9 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate: () => void }) {
     <>
       <Link href="/akun" className={linkClass} onClick={onNavigate}>
         Akun Saya
+      </Link>
+      <Link href="/forum" className={linkClass} onClick={onNavigate}>
+        Forum
       </Link>
       {canUsePanel(user.role) && (
         <Link href={homeForRole(user.role)} className={linkClass} onClick={onNavigate}>
