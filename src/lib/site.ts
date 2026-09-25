@@ -14,5 +14,6 @@ export const PUBLIC_ROUTES = [
   "/galeri",
   "/administrasi",
   "/pendaftaran",
+  "/voting",
   "/developer",
 ] as const;

@@ -5,12 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { homeForRole } from "@/lib/roles";
+import { homeForRole, nextPathFromUrl } from "@/lib/roles";
 import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
 
 export default function LoginPage() {
   const { user, isLoading, login } = useAuth();
   const router = useRouter();
+  const [nextQuery, setNextQuery] = useState("");
+
+  useEffect(() => {
+    const next = nextPathFromUrl();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- baca URL hanya di client
+    if (next) setNextQuery(`?next=${encodeURIComponent(next)}`);
+  }, []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +27,7 @@ export default function LoginPage() {
   // Sudah login → langsung ke tujuan sesuai role.
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace(homeForRole(user.role));
+      router.replace(nextPathFromUrl() ?? homeForRole(user.role));
     }
   }, [isLoading, user, router]);
 
@@ -30,7 +37,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       const loggedIn = await login(email, password);
-      router.push(homeForRole(loggedIn.role));
+      router.push(nextPathFromUrl() ?? homeForRole(loggedIn.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal login.");
     } finally {
@@ -45,7 +52,7 @@ export default function LoginPage() {
       footer={
         <>
           Belum punya akun?{" "}
-          <Link href="/daftar" className="font-semibold text-rose-600 hover:underline">
+          <Link href={`/daftar${nextQuery}`} className="font-semibold text-rose-600 hover:underline">
             Buat akun
           </Link>
         </>

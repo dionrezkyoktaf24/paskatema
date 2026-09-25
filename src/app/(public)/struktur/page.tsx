@@ -1,43 +1,18 @@
-import type { Metadata } from "next";
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { Vote } from "lucide-react";
+
+import { apiClient } from "@/lib/api";
 import { Footer } from "@/components/footer/Footer";
-
-const commandHierarchy = {
-  principal: {
-    name: "Bpk. Firman",
-    title: "Pembina Paskatema",
-    image: "/image4.jpeg",
-  },
-  chair: {
-    name: "Alif Fahreza Bintang M",
-    title: "Ketua Umum",
-    image: "/image2.jpeg",
-  },
-  members: [
-    {
-      name: "Rina Amelia",
-      title: "Sekretaris",
-      image: "/image1.jpeg",
-    },
-    {
-      name: "Dimas Prasetyo",
-      title: "Wakil Ketua",
-      image: "/image3.jpeg",
-    },
-    {
-      name: "Siti Nurhaliza",
-      title: "Bendahara",
-      image: "/dev22.jpeg",
-    },
-
-  ],
-  seniors: [
-    "/image1.jpeg",
-    "/image2.jpeg",
-    "/image3.jpeg",
-    "/image4.jpeg",
-  ],
-};
+import {
+  structurePhoto,
+  type PeriodItem,
+  type StructureItem,
+  type VotingItem,
+} from "@/services/organisasi";
 
 const divisionCards = [
   {
@@ -45,15 +20,13 @@ const divisionCards = [
     abbreviation: "DIKLAT",
     description:
       "Bertanggung jawab atas kurikulum pelatihan fisik, PBB (Peraturan Baris Berbaris), dan pembentukan mental anggota baru.",
-    coordinator: "Bagas Prakoso",
     accent: "bg-rose-50 border-rose-200 text-rose-700",
   },
   {
     title: "Hubungan Masyarakat",
-    abbreviation: "",
+    abbreviation: "HUMAS",
     description:
       "Mengelola komunikasi eksternal, sosial media, dokumentasi kegiatan, dan menjaga citra positif PASKATEMA di mata publik.",
-    coordinator: "Nadia Safira",
     accent: "bg-amber-50 border-amber-200 text-amber-700",
   },
   {
@@ -61,7 +34,6 @@ const divisionCards = [
     abbreviation: "DANLOG",
     description:
       "Inventarisasi, pemeliharaan atribut seragam, bendera, dan persiapan logistik teknis untuk setiap upacara maupun perlombaan.",
-    coordinator: "Rizky Maulana",
     accent: "bg-slate-100 border-slate-200 text-slate-700",
   },
   {
@@ -69,24 +41,88 @@ const divisionCards = [
     abbreviation: "PROVOS",
     description:
       "Menegakkan aturan organisasi, memantau absensi, dan memastikan kode etik dijunjung tinggi oleh seluruh anggota.",
-    coordinator: "Agus Setiawan",
     accent: "bg-rose-50 border-rose-200 text-rose-700",
   },
 ];
 
-const filterTabs = ["Semua", "Teknis", "Support"];
+function Photo({ item, size }: { item: StructureItem; size: number }) {
+  const url = structurePhoto(item);
+  return (
+    <div
+      className="mx-auto overflow-hidden rounded-full border border-slate-200 bg-slate-100"
+      style={{ width: size, height: size }}
+    >
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt={item.user.name} className="h-full w-full object-cover" loading="lazy" />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center text-2xl font-semibold text-rose-600">
+          {item.user.name.charAt(0).toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
 
-export const metadata: Metadata = {
-  title: "Struktur Organisasi",
-  description: "Struktur kepengurusan Paskatema SMK Telkom Malang: komandan, pembina, dan jajaran pengurus.",
-  alternates: { canonical: "/struktur" },
-};
+function PersonCard({ item, tier }: { item: StructureItem; tier: 0 | 1 | 2 }) {
+  const styles = [
+    { box: "border-rose-200 bg-rose-50 px-10 py-9", photo: 112, name: "text-2xl" },
+    { box: "border-slate-200 bg-white px-8 py-8", photo: 96, name: "text-xl" },
+    { box: "border-slate-200 bg-white p-7", photo: 80, name: "text-lg" },
+  ][tier];
+  return (
+    <div className={`w-full max-w-xs rounded-[32px] border text-center shadow-sm ${styles.box}`}>
+      <Photo item={item} size={styles.photo} />
+      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">
+        {item.position.name}
+      </p>
+      <h3 className={`mt-3 font-semibold tracking-tight text-slate-950 ${styles.name}`}>{item.user.name}</h3>
+      {item.user.angkatan !== null && (
+        <p className="mt-1 text-xs text-slate-400">Angkatan {item.user.angkatan}</p>
+      )}
+    </div>
+  );
+}
 
 export default function StrukturPage() {
+  const periods = useQuery({
+    queryKey: ["public-periods"],
+    queryFn: async () => (await apiClient.get<PeriodItem[]>("/period")).data,
+  });
+  const structures = useQuery({
+    queryKey: ["public-structures"],
+    queryFn: async () => (await apiClient.get<StructureItem[]>("/structure")).data,
+  });
+  const activeVoting = useQuery({
+    queryKey: ["voting-active"],
+    queryFn: async () => (await apiClient.get<VotingItem>("/voting/active")).data,
+    retry: false,
+  });
+
+  const [selected, setSelected] = useState<string | null>(null);
+  const periodList = periods.data ?? [];
+  // Default: periode aktif, atau periode pertama bila belum ada yang aktif.
+  const periodId =
+    selected ?? periodList.find((p) => p.isActive)?.id ?? periodList[0]?.id ?? null;
+
+  // Kelompokkan per level jabatan (1 = paling atas).
+  const tiers = useMemo(() => {
+    const rows = (structures.data ?? []).filter((s) => s.period.id === periodId);
+    const byLevel = new Map<number, StructureItem[]>();
+    for (const row of rows) {
+      byLevel.set(row.position.level, [...(byLevel.get(row.position.level) ?? []), row]);
+    }
+    return [...byLevel.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([, items]) => items.sort((a, b) => a.position.name.localeCompare(b.position.name)));
+  }, [structures.data, periodId]);
+
+  const isLoading = periods.isLoading || structures.isLoading;
+
   return (
     <main className="min-h-screen bg-[#FCF9F8] px-6 py-20 lg:px-10">
       <div className="mx-auto max-w-7xl">
-        <section className="mb-14 text-center">
+        <section className="mb-10 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">Struktur Komando</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
             Hirarki Kepengurusan
@@ -96,156 +132,92 @@ export default function StrukturPage() {
           </p>
         </section>
 
+        {activeVoting.data && (
+          <Link
+            href="/voting"
+            className="mx-auto mb-8 flex max-w-3xl items-center gap-4 rounded-[24px] border border-rose-200 bg-white p-5 shadow-sm transition hover:border-rose-400"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-600 text-white">
+              <Vote size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-600">Pemilihan sedang berlangsung</p>
+              <p className="truncate font-semibold text-slate-950">{activeVoting.data.title}</p>
+            </div>
+            <span className="shrink-0 text-sm font-semibold text-rose-600">Pilih sekarang →</span>
+          </Link>
+        )}
+
+        {periodList.length > 1 && (
+          <div className="mb-8 flex justify-center">
+            <label className="flex items-center gap-3 text-sm text-slate-600">
+              Periode
+              <select
+                value={periodId ?? ""}
+                onChange={(e) => setSelected(e.target.value)}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-rose-400"
+              >
+                {periodList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                    {p.isActive ? " (aktif)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+
         <section className="relative overflow-hidden rounded-[40px] border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-rose-50/90 to-transparent" />
           <div className="relative z-10">
-            <div className="flex justify-center">
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white px-8 py-8 text-center shadow-sm">
-                <div className="mx-auto mb-5 h-24 w-24 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
-                  <Image
-                    src={commandHierarchy.principal.image}
-                    alt={commandHierarchy.principal.title}
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                  />
-                </div>
-                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">
-                  {commandHierarchy.principal.title}
-                </p>
-                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                  {commandHierarchy.principal.name}
-                </h2>
-              </div>
-            </div>
+            {isLoading && <p className="py-16 text-center text-sm text-slate-400">Memuat struktur...</p>}
+            {(periods.isError || structures.isError) && (
+              <p className="py-16 text-center text-sm text-rose-600">Gagal memuat struktur. Coba muat ulang halaman.</p>
+            )}
+            {!isLoading && !periods.isError && !structures.isError && tiers.length === 0 && (
+              <p className="py-16 text-center text-sm text-slate-400">
+                Struktur kepengurusan untuk periode ini belum diisi.
+              </p>
+            )}
 
-            <div className="relative mt-10 flex justify-center">
-              <div className="h-12 w-px rounded-full bg-slate-200" />
-            </div>
-
-            <div className="relative mx-auto mt-10 max-w-4xl">
-              <div className="absolute left-1/2 top-0 h-10 w-px -translate-x-1/2 bg-slate-200" />
-              <div className="relative">
-                <div className="absolute left-1/2 top-full h-14 w-px -translate-x-1/2 bg-slate-200" />
-                <div className="flex justify-center">
-                  <div className="relative overflow-hidden rounded-[32px] border border-rose-200 bg-rose-50 px-8 py-9 text-center shadow-sm">
-                    <div className="mx-auto mb-5 h-28 w-28 overflow-hidden rounded-full border border-rose-200 bg-slate-100">
-                      <Image
-                        src={commandHierarchy.chair.image}
-                        alt={commandHierarchy.chair.title}
-                        width={112}
-                        height={112}
-                        className="object-cover"
-                      />
-                    </div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">
-                      {commandHierarchy.chair.title}
-                    </p>
-                    <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
-                      {commandHierarchy.chair.name}
-                    </h2>
+            {tiers.map((items, index) => (
+              <div key={index}>
+                {index > 0 && (
+                  <div className="flex justify-center py-6">
+                    <div className="h-10 w-px rounded-full bg-slate-200" />
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-16">
-              <div className="relative mx-auto max-w-5xl">
-                <div className="absolute left-1/2 top-6 h-10 w-px -translate-x-1/2 bg-slate-200" />
-                <div className="absolute inset-x-0 top-10 flex justify-center">
-                  <div className="h-px w-4/5 rounded-full bg-slate-200" />
-                </div>
-                <div className="grid gap-6 lg:grid-cols-3">
-                  {commandHierarchy.members.map((member) => (
-                    <div key={member.name} className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-8 text-center shadow-sm">
-                      <div className="absolute left-1/2 top-0 h-10 w-px -translate-x-1/2 bg-slate-200" />
-                      <div className="mt-6 flex justify-center">
-                        <div className="h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
-                          <Image
-                            src={member.image}
-                            alt={member.title}
-                            width={80}
-                            height={80}
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                      <p className="mt-6 text-sm font-semibold uppercase tracking-[0.35em] text-slate-500">
-                        {member.title}
-                      </p>
-                      <h3 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                        {member.name}
-                      </h3>
-                    </div>
+                )}
+                <div className="flex flex-wrap justify-center gap-6">
+                  {items.map((item) => (
+                    <PersonCard key={item.id} item={item} tier={Math.min(index, 2) as 0 | 1 | 2} />
                   ))}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        <div className="mt-8 flex justify-center">
-          <div className="inline-flex items-center gap-4 rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm">
-            <div className="flex -space-x-3">
-              {commandHierarchy.seniors.slice(0, 4).map((src, index) => (
-                <div
-                  key={index}
-                  className="h-10 w-10 overflow-hidden rounded-full border-2 border-white bg-white shadow-sm"
-                >
-                  <Image src={src} alt={`Senior ${index + 1}`} width={40} height={40} className="object-cover" />
-                </div>
-              ))}
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-semibold text-slate-500">
-                +5
-              </span>
-            </div>
-            <span>Deretan Senior</span>
+        <section className="mt-20 py-16 lg:py-24">
+          <div className="mb-10 max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">Divisi Operasional</p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              Roda penggerak organisasi yang terbagi dalam bidang spesialisasi untuk memastikan setiap program berjalan maksimal.
+            </h2>
           </div>
-        </div>
 
-        <section className="mt-20 bg-[#FCF9F8] px-6 py-16 lg:px-10 lg:py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-10 max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">Divisi Operasional</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                Roda penggerak organisasi yang terbagi dalam bidang spesialisasi untuk memastikan setiap program berjalan maksimal.
-              </h2>
-            </div>
-
-            <div className="mb-8 flex flex-wrap gap-3">
-              {filterTabs.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid gap-6 xl:grid-cols-2">
-              {divisionCards.map((division) => (
-                <article
-                  key={division.title}
-                  className="overflow-hidden rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm"
-                >
-                  <div className={`inline-flex rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.35em] ${division.accent}`}> 
-                    {division.abbreviation || division.title}
-                  </div>
-                  <div className="mt-6 space-y-4">
-                    <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
-                      {division.title}
-                    </h3>
-                    <p className="text-sm leading-7 text-slate-600">{division.description}</p>
-                  </div>
-                  <div className="mt-8 rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-                    <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Koordinator</p>
-                    <p className="mt-3 text-lg font-semibold text-slate-950">{division.coordinator}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
+          <div className="grid gap-6 xl:grid-cols-2">
+            {divisionCards.map((division) => (
+              <article key={division.title} className="overflow-hidden rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+                <div className={`inline-flex rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.35em] ${division.accent}`}>
+                  {division.abbreviation}
+                </div>
+                <div className="mt-6 space-y-4">
+                  <h3 className="text-2xl font-semibold tracking-tight text-slate-950">{division.title}</h3>
+                  <p className="text-sm leading-7 text-slate-600">{division.description}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       </div>

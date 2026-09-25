@@ -5,12 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { homeForRole } from "@/lib/roles";
+import { homeForRole, nextPathFromUrl } from "@/lib/roles";
 import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
 
 export default function DaftarPage() {
   const { user, isLoading, register } = useAuth();
   const router = useRouter();
+  const [nextQuery, setNextQuery] = useState("");
+
+  useEffect(() => {
+    const next = nextPathFromUrl();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- baca URL hanya di client
+    if (next) setNextQuery(`?next=${encodeURIComponent(next)}`);
+  }, []);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,7 +28,7 @@ export default function DaftarPage() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace(homeForRole(user.role));
+      router.replace(nextPathFromUrl() ?? homeForRole(user.role));
     }
   }, [isLoading, user, router]);
 
@@ -31,7 +38,7 @@ export default function DaftarPage() {
     setIsSubmitting(true);
     try {
       await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim() });
-      router.push("/akun");
+      router.push(nextPathFromUrl() ?? "/akun");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal mendaftar.");
     } finally {
@@ -46,7 +53,7 @@ export default function DaftarPage() {
       footer={
         <>
           Sudah punya akun?{" "}
-          <Link href="/login" className="font-semibold text-rose-600 hover:underline">
+          <Link href={`/login${nextQuery}`} className="font-semibold text-rose-600 hover:underline">
             Masuk
           </Link>
         </>
