@@ -15,6 +15,10 @@ interface TransactionItem {
   date: string;
   type: TransactionType;
   description: string;
+  quantity: number | null;
+  unit: string | null;
+  unitPrice: number | null;
+  vendorName: string | null;
   period: { id: string; name: string } | null;
   event: { id: string; title: string } | null;
 }
@@ -45,6 +49,10 @@ interface TransactionFormValues {
   date: string;
   type: TransactionType;
   description: string;
+  quantity: number | null;
+  unit: string | null;
+  unitPrice: number | null;
+  vendorName: string | null;
   periodId?: string;
   eventId?: string;
 }
@@ -77,12 +85,13 @@ function todayIso(): string {
 export default function AdminKeuanganPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<TransactionType | "">("");
 
   const list = useQuery({
-    queryKey: ["admin-transaction", page],
+    queryKey: ["admin-transaction", page, typeFilter],
     queryFn: async () => {
       const response = await apiClient.get<TransactionListResponse>("/transaction", {
-        params: { page, limit: 15 },
+        params: { page, limit: 15, type: typeFilter || undefined },
       });
       return response.data;
     },
@@ -137,6 +146,10 @@ export default function AdminKeuanganPage() {
   const [date, setDate] = useState(todayIso());
   const [type, setType] = useState<TransactionType>("INCOME");
   const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [unit, setUnit] = useState("");
+  const [unitPrice, setUnitPrice] = useState(0);
+  const [vendorName, setVendorName] = useState("");
   const [periodId, setPeriodId] = useState("");
   const [eventId, setEventId] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -146,6 +159,10 @@ export default function AdminKeuanganPage() {
     setDate(todayIso());
     setType("INCOME");
     setDescription("");
+    setQuantity(0);
+    setUnit("");
+    setUnitPrice(0);
+    setVendorName("");
     setPeriodId("");
     setEventId("");
     setFormError(null);
@@ -157,21 +174,32 @@ export default function AdminKeuanganPage() {
     setDate(item.date.slice(0, 10));
     setType(item.type);
     setDescription(item.description);
+    setQuantity(item.quantity ?? 0);
+    setUnit(item.unit ?? "");
+    setUnitPrice(item.unitPrice ?? 0);
+    setVendorName(item.vendorName ?? "");
     setPeriodId(item.period?.id ?? "");
     setEventId(item.event?.id ?? "");
     setFormError(null);
     setEditing(item);
   }
 
+  // Sub total otomatis bila jumlah & harga diisi (server juga menghitung ulang).
+  const subtotal = quantity > 0 && unitPrice > 0 ? quantity * unitPrice : null;
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setFormError(null);
 
     const payload: TransactionFormValues = {
-      amount,
+      amount: subtotal ?? amount,
       date: new Date(date).toISOString(),
       type,
       description,
+      quantity: quantity > 0 ? quantity : null,
+      unit: unit.trim() || null,
+      unitPrice: unitPrice > 0 ? unitPrice : null,
+      vendorName: vendorName.trim() || null,
       periodId: periodId || undefined,
       eventId: eventId || undefined,
     };
@@ -249,27 +277,47 @@ export default function AdminKeuanganPage() {
       </div>
 
       <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
+          <span className="text-sm font-semibold text-slate-700">Rincian Transaksi</span>
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value as TransactionType | "");
+              setPage(1);
+            }}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-rose-400"
+          >
+            <option value="">Semua jenis</option>
+            <option value="INCOME">Pemasukan</option>
+            <option value="EXPENSE">Pengeluaran</option>
+          </select>
+        </div>
+        <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-5 py-3">Tanggal</th>
               <th className="px-5 py-3">Keterangan</th>
+              <th className="px-5 py-3">Vendor</th>
+              <th className="px-5 py-3 text-right">Jumlah</th>
+              <th className="px-5 py-3">Satuan</th>
+              <th className="px-5 py-3 text-right">Harga</th>
+              <th className="px-5 py-3 text-right">Sub Total</th>
               <th className="px-5 py-3">Jenis</th>
-              <th className="px-5 py-3 text-right">Nominal</th>
               <th className="px-5 py-3 text-right">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {list.isLoading && (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                <td colSpan={9} className="px-5 py-8 text-center text-slate-400">
                   Memuat...
                 </td>
               </tr>
             )}
             {list.data?.data.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                <td colSpan={9} className="px-5 py-8 text-center text-slate-400">
                   Belum ada transaksi.
                 </td>
               </tr>
@@ -283,6 +331,19 @@ export default function AdminKeuanganPage() {
                     <span className="ml-2 text-xs text-slate-400">· {item.period.name}</span>
                   )}
                 </td>
+                <td className="max-w-[10rem] truncate px-5 py-4 text-slate-600">
+                  {item.vendorName ?? "—"}
+                </td>
+                <td className="whitespace-nowrap px-5 py-4 text-right text-slate-600">
+                  {item.quantity ?? "—"}
+                </td>
+                <td className="whitespace-nowrap px-5 py-4 text-slate-600">{item.unit ?? "—"}</td>
+                <td className="whitespace-nowrap px-5 py-4 text-right text-slate-600">
+                  {item.unitPrice != null ? formatRupiah(item.unitPrice) : "—"}
+                </td>
+                <td className="whitespace-nowrap px-5 py-4 text-right font-semibold text-slate-900">
+                  {formatRupiah(item.amount)}
+                </td>
                 <td className="px-5 py-4">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -293,9 +354,6 @@ export default function AdminKeuanganPage() {
                   >
                     {item.type === "INCOME" ? "Masuk" : "Keluar"}
                   </span>
-                </td>
-                <td className="whitespace-nowrap px-5 py-4 text-right font-semibold text-slate-900">
-                  {formatRupiah(item.amount)}
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
@@ -318,7 +376,33 @@ export default function AdminKeuanganPage() {
               </tr>
             ))}
           </tbody>
+          {summary.data && (
+            <tfoot className="border-t-2 border-slate-200 bg-slate-50 text-sm">
+              <tr>
+                <td colSpan={6} className="px-5 py-4 text-right font-semibold text-slate-700">
+                  {typeFilter === "INCOME"
+                    ? "Total Pemasukan"
+                    : typeFilter === "EXPENSE"
+                      ? "Total Pengeluaran"
+                      : "Total (Saldo)"}
+                </td>
+                <td className="whitespace-nowrap px-5 py-4 text-right font-bold text-slate-950">
+                  {formatRupiah(
+                    typeFilter === "INCOME"
+                      ? summary.data.totalIncome
+                      : typeFilter === "EXPENSE"
+                        ? summary.data.totalExpense
+                        : summary.data.balance,
+                  )}
+                </td>
+                <td colSpan={2} className="px-5 py-4 text-xs text-slate-400">
+                  semua halaman
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
+        </div>
 
         {meta && meta.totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
@@ -376,16 +460,70 @@ export default function AdminKeuanganPage() {
             </div>
 
             <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-700">Nominal (Rp)</span>
+              <span className="text-sm font-medium text-slate-700">Nama Vendor (opsional)</span>
+              <input
+                type="text"
+                maxLength={100}
+                placeholder="mis. Toko Sumber Rejeki"
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+              />
+            </label>
+
+            <div className="grid grid-cols-3 gap-3">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-slate-700">Jumlah</span>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={quantity || ""}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-slate-700">Satuan</span>
+                <input
+                  type="text"
+                  maxLength={30}
+                  placeholder="pcs, dus"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-slate-700">Harga (Rp)</span>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={unitPrice || ""}
+                  onChange={(e) => setUnitPrice(Number(e.target.value))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                />
+              </label>
+            </div>
+
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-slate-700">Sub Total (Rp)</span>
               <input
                 required
                 type="number"
                 min={1}
                 step={1}
-                value={amount || ""}
+                readOnly={subtotal !== null}
+                value={(subtotal ?? amount) || ""}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none read-only:bg-slate-50 read-only:text-slate-600 focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
               />
+              <span className="block text-xs text-slate-400">
+                {subtotal !== null
+                  ? `${quantity} × ${formatRupiah(unitPrice)} (dihitung otomatis)`
+                  : "Isi jumlah & harga untuk menghitung otomatis, atau ketik nominal langsung."}
+              </span>
             </label>
 
             <label className="block space-y-2">
