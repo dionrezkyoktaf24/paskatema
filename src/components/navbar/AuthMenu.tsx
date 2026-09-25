@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogIn } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { canUsePanel, homeForRole, panelLabel } from "@/lib/roles";
 
 const itemClass =
   "block w-full px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 hover:text-rose-600";
@@ -58,9 +59,9 @@ export function AuthMenu() {
           <Link href="/akun" className={itemClass} onClick={() => setOpen(false)}>
             Akun Saya
           </Link>
-          {user.role === "ADMIN" && (
-            <Link href="/admin" className={itemClass} onClick={() => setOpen(false)}>
-              Panel Admin
+          {canUsePanel(user.role) && (
+            <Link href={homeForRole(user.role)} className={itemClass} onClick={() => setOpen(false)}>
+              {panelLabel(user.role)}
             </Link>
           )}
           <button
@@ -105,9 +106,9 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate: () => void }) {
       <Link href="/akun" className={linkClass} onClick={onNavigate}>
         Akun Saya
       </Link>
-      {user.role === "ADMIN" && (
-        <Link href="/admin" className={linkClass} onClick={onNavigate}>
-          Panel Admin
+      {canUsePanel(user.role) && (
+        <Link href={homeForRole(user.role)} className={linkClass} onClick={onNavigate}>
+          {panelLabel(user.role)}
         </Link>
       )}
       <button

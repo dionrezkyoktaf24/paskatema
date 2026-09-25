@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, Loader2, TrendingUp, TrendingDown, Wallet } from 
 
 import { apiClient } from "@/lib/api";
 import { Modal } from "@/components/admin/Modal";
+import { useAuth } from "@/contexts/AuthContext";
 
 type TransactionType = "INCOME" | "EXPENSE";
 
@@ -21,6 +22,7 @@ interface TransactionItem {
   vendorName: string | null;
   period: { id: string; name: string } | null;
   event: { id: string; title: string } | null;
+  createdBy: { id: string; name: string } | null;
 }
 
 interface TransactionListResponse {
@@ -84,6 +86,9 @@ function todayIso(): string {
 
 export default function AdminKeuanganPage() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  // Pencatatan kas hanya oleh bendahara; admin hanya melihat (backend juga menolak).
+  const canEdit = user?.role === "BENDAHARA";
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<TransactionType | "">("");
 
@@ -229,15 +234,21 @@ export default function AdminKeuanganPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-950">Laporan Keuangan</h1>
-          <p className="text-sm text-slate-500">Catat pemasukan &amp; pengeluaran kas Paskatema.</p>
+          <p className="text-sm text-slate-500">
+            {canEdit
+              ? "Catat pemasukan & pengeluaran kas Paskatema."
+              : "Laporan kas Paskatema. Pencatatan dilakukan oleh bendahara."}
+          </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700"
-        >
-          <Plus size={16} />
-          Catat Transaksi
-        </button>
+        {canEdit && (
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700"
+          >
+            <Plus size={16} />
+            Catat Transaksi
+          </button>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -304,7 +315,7 @@ export default function AdminKeuanganPage() {
               <th className="px-5 py-3 text-right">Harga</th>
               <th className="px-5 py-3 text-right">Sub Total</th>
               <th className="px-5 py-3">Jenis</th>
-              <th className="px-5 py-3 text-right">Aksi</th>
+              <th className="px-5 py-3 text-right">{canEdit ? "Aksi" : ""}</th>
             </tr>
           </thead>
           <tbody>
@@ -329,6 +340,11 @@ export default function AdminKeuanganPage() {
                   {item.description}
                   {item.period && (
                     <span className="ml-2 text-xs text-slate-400">· {item.period.name}</span>
+                  )}
+                  {item.createdBy && (
+                    <span className="block text-xs font-normal text-slate-400">
+                      Dicatat oleh {item.createdBy.name}
+                    </span>
                   )}
                 </td>
                 <td className="max-w-[10rem] truncate px-5 py-4 text-slate-600">
@@ -356,22 +372,24 @@ export default function AdminKeuanganPage() {
                   </span>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => openEdit(item)}
-                      className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                      aria-label="Edit"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
-                      aria-label="Hapus"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => openEdit(item)}
+                        className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                        aria-label="Edit"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                        aria-label="Hapus"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -429,7 +447,7 @@ export default function AdminKeuanganPage() {
         )}
       </div>
 
-      {editing && (
+      {canEdit && editing && (
         <Modal
           title={editing === "new" ? "Catat Transaksi" : "Edit Transaksi"}
           onClose={() => setEditing(null)}

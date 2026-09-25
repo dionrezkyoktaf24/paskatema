@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { getToken, setAuth } from "@/lib/auth-storage";
 import { useAuth } from "@/contexts/AuthContext";
+import { canUsePanel, homeForRole, panelLabel, type UserRole } from "@/lib/roles";
 import { authInputClass } from "@/components/auth/AuthCard";
 import { MemberGallery } from "@/components/auth/MemberGallery";
 
@@ -15,7 +16,7 @@ interface Profile {
   id: string;
   email: string;
   name: string;
-  role: "USER" | "ADMIN";
+  role: UserRole;
   phone: string | null;
   bio: string | null;
   angkatan: number | null;
@@ -184,12 +185,12 @@ function ProfileForm({
         >
           {save.isPending ? "Menyimpan..." : "Simpan"}
         </button>
-        {profile.role === "ADMIN" && (
+        {canUsePanel(profile.role) && (
           <Link
-            href="/admin"
+            href={homeForRole(profile.role)}
             className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
           >
-            Panel Admin
+            {panelLabel(profile.role)}
           </Link>
         )}
         <button

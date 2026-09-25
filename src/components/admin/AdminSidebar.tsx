@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import type { AuthUser } from "@/lib/auth-storage";
+import { ROLE_LABEL, canOpenPanelPath, panelLabel } from "@/lib/roles";
 
 const navGroups = [
   {
@@ -55,6 +56,12 @@ export function AdminSidebar({
   onLogout: () => void;
 }) {
   const pathname = usePathname();
+  const groups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canOpenPanelPath(user.role, item.href)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -62,11 +69,11 @@ export function AdminSidebar({
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-600">
           Paskatema
         </p>
-        <p className="mt-1 text-sm font-semibold text-slate-900">Panel Admin</p>
+        <p className="mt-1 text-sm font-semibold text-slate-900">{panelLabel(user.role)}</p>
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
-        {navGroups.map((group) => (
+        {groups.map((group) => (
           <div key={group.title}>
             <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               {group.title}
@@ -101,6 +108,9 @@ export function AdminSidebar({
         <div className="rounded-xl bg-slate-50 px-3 py-2.5">
           <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
           <p className="truncate text-xs text-slate-500">{user.email}</p>
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-rose-600">
+            {ROLE_LABEL[user.role]}
+          </p>
         </div>
         <button
           onClick={onLogout}

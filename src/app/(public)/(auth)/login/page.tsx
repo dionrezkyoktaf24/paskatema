@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { homeForRole } from "@/lib/roles";
 import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
 
 export default function LoginPage() {
@@ -19,7 +20,7 @@ export default function LoginPage() {
   // Sudah login → langsung ke tujuan sesuai role.
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace(user.role === "ADMIN" ? "/admin" : "/akun");
+      router.replace(homeForRole(user.role));
     }
   }, [isLoading, user, router]);
 
@@ -29,7 +30,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       const loggedIn = await login(email, password);
-      router.push(loggedIn.role === "ADMIN" ? "/admin" : "/akun");
+      router.push(homeForRole(loggedIn.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal login.");
     } finally {

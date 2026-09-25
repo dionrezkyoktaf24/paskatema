@@ -7,12 +7,14 @@ import { Pencil, Loader2, Search } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Modal } from "@/components/admin/Modal";
+import { useAuth } from "@/contexts/AuthContext";
+import { ROLE_LABEL, type UserRole } from "@/lib/roles";
 
 interface MemberItem {
   id: string;
   name: string;
   email: string;
-  role: "USER" | "ADMIN";
+  role: UserRole;
   angkatan: number | null;
 }
 
@@ -43,12 +45,21 @@ export function AnggotaTab() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-members"] }),
   });
 
+  const updateRole = useMutation({
+    mutationFn: async ({ id, role }: { id: string; role: UserRole }) =>
+      (await apiClient.patch(`/user/${id}/role`, { role })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-members"] }),
+  });
+
+  const { user: currentUser } = useAuth();
   const [editing, setEditing] = useState<MemberItem | null>(null);
   const [angkatan, setAngkatan] = useState("");
+  const [role, setRole] = useState<UserRole>("USER");
   const [formError, setFormError] = useState<string | null>(null);
 
   function openEdit(item: MemberItem) {
     setAngkatan(item.angkatan?.toString() ?? "");
+    setRole(item.role);
     setFormError(null);
     setEditing(item);
   }
@@ -63,9 +74,12 @@ export function AnggotaTab() {
         id: editing.id,
         angkatan: angkatan ? Number(angkatan) : null,
       });
+      if (role !== editing.role) {
+        await updateRole.mutateAsync({ id: editing.id, role });
+      }
       setEditing(null);
     } catch {
-      setFormError("Gagal menyimpan angkatan.");
+      setFormError("Gagal menyimpan perubahan anggota.");
     }
   }
 
@@ -124,10 +138,12 @@ export function AnggotaTab() {
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                       item.role === "ADMIN"
                         ? "bg-rose-50 text-rose-700"
-                        : "bg-slate-100 text-slate-600"
+                        : item.role === "BENDAHARA"
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-slate-100 text-slate-600"
                     }`}
                   >
-                    {item.role}
+                    {ROLE_LABEL[item.role]}
                   </span>
                 </td>
                 <td className="px-5 py-4">
@@ -135,7 +151,7 @@ export function AnggotaTab() {
                     <button
                       onClick={() => openEdit(item)}
                       className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                      aria-label="Edit angkatan"
+                      aria-label="Edit anggota"
                     >
                       <Pencil size={16} />
                     </button>
@@ -172,7 +188,7 @@ export function AnggotaTab() {
       </div>
 
       {editing && (
-        <Modal title={`Angkatan — ${editing.name}`} onClose={() => setEditing(null)}>
+        <Modal title={`Edit — ${editing.name}`} onClose={() => setEditing(null)}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block space-y-2">
               <span className="text-sm font-medium text-slate-700">Nomor Angkatan</span>
@@ -187,14 +203,31 @@ export function AnggotaTab() {
               <span className="text-xs text-slate-400">Kosongkan untuk menghapus angkatan.</span>
             </label>
 
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-slate-700">Role</span>
+              <select
+                value={role}
+                disabled={editing.id === currentUser?.id}
+                onChange={(e) => setRole(e.target.value as UserRole)}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 disabled:bg-slate-50 disabled:text-slate-400"
+              >
+                <option value="USER">Anggota</option>
+                <option value="BENDAHARA">Bendahara — mencatat laporan keuangan</option>
+                <option value="ADMIN">Admin — kelola seluruh panel</option>
+              </select>
+              {editing.id === currentUser?.id && (
+                <span className="text-xs text-slate-400">Role akun sendiri tidak bisa diubah.</span>
+              )}
+            </label>
+
             {formError && <p className="text-sm text-rose-600">{formError}</p>}
 
             <button
               type="submit"
-              disabled={updateAngkatan.isPending}
+              disabled={updateAngkatan.isPending || updateRole.isPending}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
             >
-              {updateAngkatan.isPending && <Loader2 size={16} className="animate-spin" />}
+              {(updateAngkatan.isPending || updateRole.isPending) && <Loader2 size={16} className="animate-spin" />}
               Simpan
             </button>
           </form>

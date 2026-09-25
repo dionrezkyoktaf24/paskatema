@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { homeForRole } from "@/lib/roles";
 
 export default function AdminLoginPage() {
   const { login } = useAuth();
@@ -21,8 +22,8 @@ export default function AdminLoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      router.push("/admin");
+      const loggedIn = await login(email, password);
+      router.push(homeForRole(loggedIn.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal login.");
     } finally {
@@ -41,7 +42,7 @@ export default function AdminLoginPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-500">
               Paskatema
             </p>
-            <p className="text-sm font-semibold text-white">Panel Admin</p>
+            <p className="text-sm font-semibold text-white">Panel Admin &amp; Bendahara</p>
           </div>
         </div>
 

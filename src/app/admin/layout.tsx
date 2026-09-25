@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { canOpenPanelPath, canUsePanel, homeForRole } from "@/lib/roles";
 
 export default function AdminLayout({
   children,
@@ -19,22 +20,24 @@ export default function AdminLayout({
   useEffect(() => {
     if (isLoading) return;
 
-    const isAdmin = user?.role === "ADMIN";
+    const canPanel = canUsePanel(user?.role);
 
-    if (!isLoginPage && !isAdmin) {
+    if (!isLoginPage && !canPanel) {
       router.replace("/admin/login");
+      return;
     }
-    if (isLoginPage && isAdmin) {
-      router.replace("/admin");
+    if (user && canPanel && (isLoginPage || !canOpenPanelPath(user.role, pathname))) {
+      // Mis. bendahara membuka /admin → arahkan ke laporan keuangan.
+      router.replace(homeForRole(user.role));
     }
-  }, [isLoading, user, isLoginPage, router]);
+  }, [isLoading, user, isLoginPage, pathname, router]);
 
   // Halaman login mengurus tampilannya sendiri (tanpa sidebar).
   if (isLoginPage) {
     return <>{children}</>;
   }
 
-  if (isLoading || user?.role !== "ADMIN") {
+  if (isLoading || !user || !canOpenPanelPath(user.role, pathname)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">
         Memuat...

@@ -1,3 +1,5 @@
+import type { UserRole } from "@/lib/roles";
+
 const TOKEN_KEY = "paskatema_admin_token";
 const USER_KEY = "paskatema_admin_user";
 
@@ -5,7 +7,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: "USER" | "ADMIN";
+  role: UserRole;
   phone?: string | null;
   bio?: string | null;
 }

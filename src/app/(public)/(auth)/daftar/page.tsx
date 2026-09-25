@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { homeForRole } from "@/lib/roles";
 import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
 
 export default function DaftarPage() {
@@ -20,7 +21,7 @@ export default function DaftarPage() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace(user.role === "ADMIN" ? "/admin" : "/akun");
+      router.replace(homeForRole(user.role));
     }
   }, [isLoading, user, router]);
 
