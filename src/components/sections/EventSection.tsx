@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { eventCard } from "@/lib/constants";
 
 export function EventSection() {
@@ -60,6 +61,12 @@ export function EventSection() {
           >
             Masuk Portal Antareja
           </a>
+          <Link
+            href="/event"
+            className="mt-4 inline-flex items-center justify-center text-sm font-semibold text-rose-600 hover:underline"
+          >
+            Lihat agenda &amp; dokumentasi event →
+          </Link>
         </motion.div>
       </div>
     </section>

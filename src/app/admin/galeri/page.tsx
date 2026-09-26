@@ -8,6 +8,7 @@ import { Modal } from "@/components/admin/Modal";
 import { MediaPicker } from "@/components/admin/MediaPicker";
 import type { MediaItem } from "@/services/media";
 import type { GalleryPhoto } from "@/services/gallery";
+import { MediaThumb } from "@/components/ui/MediaView";
 
 interface GalleryFormValues {
   angkatan: number;
@@ -49,7 +50,7 @@ export default function AdminGaleriPage() {
     event.preventDefault();
     setFormError(null);
     if (!image) {
-      setFormError("Pilih atau unggah foto terlebih dahulu.");
+      setFormError("Pilih atau unggah foto/video terlebih dahulu.");
       return;
     }
     try {
@@ -60,12 +61,12 @@ export default function AdminGaleriPage() {
       });
       setIsOpen(false);
     } catch {
-      setFormError("Gagal menyimpan foto. Periksa kembali isian Anda.");
+      setFormError("Gagal menyimpan. Periksa kembali isian Anda.");
     }
   }
 
   async function handleDelete(photo: GalleryPhoto) {
-    if (!window.confirm("Hapus foto ini dari galeri?")) return;
+    if (!window.confirm("Hapus dari galeri?")) return;
     await remove.mutateAsync(photo.id);
   }
 
@@ -75,8 +76,8 @@ export default function AdminGaleriPage() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-950">Galeri</h1>
           <p className="text-sm text-slate-500">
-            Foto per angkatan. Anggota juga dapat menambah foto angkatannya sendiri dari halaman
-            Akun; di sini admin dapat menambah untuk angkatan mana pun dan menghapus foto yang
+            Foto &amp; video per angkatan. Anggota juga dapat menambah untuk angkatannya sendiri dari
+            halaman Akun; di sini admin dapat menambah untuk angkatan mana pun dan menghapus yang
             tidak pantas.
           </p>
         </div>
@@ -85,7 +86,7 @@ export default function AdminGaleriPage() {
           className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700"
         >
           <Plus size={16} />
-          Tambah Foto
+          Tambah Foto/Video
         </button>
       </div>
 
@@ -118,7 +119,7 @@ export default function AdminGaleriPage() {
       {list.isLoading && <p className="text-sm text-slate-400">Memuat...</p>}
       {list.isSuccess && items.length === 0 && (
         <p className="rounded-[24px] border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-400">
-          Belum ada foto.
+          Belum ada foto atau video.
         </p>
       )}
 
@@ -129,13 +130,7 @@ export default function AdminGaleriPage() {
             className="overflow-hidden rounded-[20px] border border-slate-200 bg-white"
           >
             <div className="relative aspect-square bg-slate-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.image.url}
-                alt={photo.caption ?? ""}
-                loading="lazy"
-                className="h-full w-full object-cover"
-              />
+              <MediaThumb media={photo.image} alt={photo.caption ?? ""} />
               <button
                 onClick={() => handleDelete(photo)}
                 aria-label="Hapus"
@@ -156,7 +151,7 @@ export default function AdminGaleriPage() {
       </div>
 
       {isOpen && (
-        <Modal title="Tambah Foto Galeri" onClose={() => setIsOpen(false)}>
+        <Modal title="Tambah ke Galeri" onClose={() => setIsOpen(false)}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block space-y-2">
               <span className="text-sm font-medium text-slate-700">Angkatan</span>
@@ -181,7 +176,7 @@ export default function AdminGaleriPage() {
               />
             </label>
 
-            <MediaPicker label="Foto" value={image} onChange={setImage} />
+            <MediaPicker label="Foto / Video" value={image} onChange={setImage} accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" />
 
             {formError && <p className="text-sm text-rose-600">{formError}</p>}
 

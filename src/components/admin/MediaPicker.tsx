@@ -4,6 +4,8 @@ import { useState, type ChangeEvent } from "react";
 import { ImagePlus, Loader2, Images } from "lucide-react";
 
 import { uploadMedia, type MediaItem } from "@/services/media";
+import { apiErrorMessage } from "@/lib/api-error";
+import { MediaThumb } from "@/components/ui/MediaView";
 import { MediaGalleryModal } from "@/components/admin/MediaGalleryModal";
 
 export function MediaPicker({
@@ -32,8 +34,8 @@ export function MediaPicker({
     try {
       const media = await uploadMedia(file);
       onChange(media);
-    } catch {
-      setError("Gagal upload file. Coba lagi.");
+    } catch (err) {
+      setError(apiErrorMessage(err, "Gagal upload file. Coba lagi."));
     } finally {
       setIsUploading(false);
     }
@@ -44,19 +46,16 @@ export function MediaPicker({
     setIsGalleryOpen(false);
   }
 
-  const isImage = value?.mimeType.startsWith("image/");
+  const isVisual = value?.mimeType.startsWith("image/") || value?.mimeType.startsWith("video/");
 
   return (
     <div className="space-y-2">
       <span className="text-sm font-medium text-slate-700">{label}</span>
       <div className="flex items-center gap-3">
-        {value && isImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={value.url}
-            alt=""
-            className="h-16 w-16 rounded-lg border border-slate-200 object-cover"
-          />
+        {value && isVisual ? (
+          <span className="block h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200">
+            <MediaThumb media={value} alt="" />
+          </span>
         ) : value ? (
           <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-1 text-center text-[10px] text-slate-500">
             {value.fileName}

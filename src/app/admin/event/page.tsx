@@ -16,6 +16,8 @@ interface EventItem {
   location: string | null;
   posterId: string | null;
   poster: MediaItem | null;
+  videoId: string | null;
+  video: MediaItem | null;
 }
 
 interface EventFormValues {
@@ -24,6 +26,7 @@ interface EventFormValues {
   date: string;
   location?: string;
   posterId?: string | null;
+  videoId?: string | null;
 }
 
 function formatDate(value: string): string {
@@ -53,6 +56,7 @@ export default function AdminEventPage() {
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
   const [poster, setPoster] = useState<MediaItem | null>(null);
+  const [video, setVideo] = useState<MediaItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   function openCreate() {
@@ -61,6 +65,7 @@ export default function AdminEventPage() {
     setDate("");
     setLocation("");
     setPoster(null);
+    setVideo(null);
     setFormError(null);
     setEditing("new");
   }
@@ -71,6 +76,7 @@ export default function AdminEventPage() {
     setDate(toDatetimeLocal(item.date));
     setLocation(item.location ?? "");
     setPoster(item.poster);
+    setVideo(item.video);
     setFormError(null);
     setEditing(item);
   }
@@ -85,6 +91,7 @@ export default function AdminEventPage() {
       date: new Date(date).toISOString(),
       location: location || undefined,
       posterId: poster?.id ?? null,
+      videoId: video?.id ?? null,
     };
 
     try {
@@ -224,7 +231,13 @@ export default function AdminEventPage() {
               </label>
             </div>
 
-            <MediaPicker label="Poster (opsional)" value={poster} onChange={setPoster} />
+            <MediaPicker label="Poster (opsional)" value={poster} onChange={setPoster} accept="image/*" />
+            <MediaPicker
+              label="Video dokumentasi (opsional, MP4/WEBM/MOV maks 100 MB)"
+              value={video}
+              onChange={setVideo}
+              accept="video/mp4,video/webm,video/quicktime"
+            />
 
             {formError && <p className="text-sm text-rose-600">{formError}</p>}
 

@@ -5,7 +5,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 
 import { apiClient } from "@/lib/api";
-import { uploadMedia } from "@/services/media";
+import { IMAGE_MAX_MB, VIDEO_MAX_MB, uploadMedia } from "@/services/media";
+import { apiErrorMessage } from "@/lib/api-error";
+import { MediaThumb } from "@/components/ui/MediaView";
 import type { GalleryPhoto } from "@/services/gallery";
 import { authInputClass } from "@/components/auth/AuthCard";
 
@@ -13,6 +15,8 @@ import { authInputClass } from "@/components/auth/AuthCard";
  * Anggota menambah/menghapus foto galeri untuk angkatannya sendiri. Angkatan
  * diisi admin; tanpa itu form dinonaktifkan (backend juga menolak).
  */
+const FORMAT_HINT = `Foto JPG/PNG/WEBP maks ${IMAGE_MAX_MB} MB, video MP4/WEBM/MOV maks ${VIDEO_MAX_MB} MB.`;
+
 export function MemberGallery({ angkatan }: { angkatan: number | null }) {
   const queryClient = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -56,14 +60,12 @@ export function MemberGallery({ angkatan }: { angkatan: number | null }) {
         uploaded += 1;
       }
       setCaption("");
-      setMessage({ type: "ok", text: `${uploaded} foto berhasil ditambahkan.` });
-    } catch {
+      setMessage({ type: "ok", text: `${uploaded} file berhasil ditambahkan.` });
+    } catch (err) {
+      const reason = apiErrorMessage(err, FORMAT_HINT);
       setMessage({
         type: "error",
-        text:
-          uploaded > 0
-            ? `${uploaded} foto berhasil, sisanya gagal. Format JPG/PNG/WEBP, maks 5MB.`
-            : "Gagal menambahkan foto. Format JPG/PNG/WEBP, maks 5MB.",
+        text: uploaded > 0 ? `${uploaded} file berhasil, sisanya gagal: ${reason}` : `Gagal menambahkan: ${reason}`,
       });
     } finally {
       setIsUploading(false);
@@ -76,17 +78,17 @@ export function MemberGallery({ angkatan }: { angkatan: number | null }) {
   return (
     <section className="space-y-4 rounded-[28px] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
       <div>
-        <h2 className="text-lg font-semibold text-slate-950">Foto Galeri Angkatan</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Foto &amp; Video Galeri Angkatan</h2>
         <p className="mt-1 text-sm text-slate-500">
           {canUpload
-            ? `Foto yang Anda tambahkan tampil di galeri publik pada Angkatan ${angkatan}.`
-            : "Angkatan Anda belum diisi admin, jadi belum bisa menambah foto. Hubungi pengurus untuk verifikasi."}
+            ? `Foto dan video yang Anda tambahkan tampil di galeri publik pada Angkatan ${angkatan}. ${FORMAT_HINT}`
+            : "Angkatan Anda belum diisi admin, jadi belum bisa menambah foto atau video. Hubungi pengurus untuk verifikasi."}
         </p>
       </div>
 
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-slate-700">
-          Keterangan <span className="text-slate-400">(opsional, untuk semua foto yang dipilih)</span>
+          Keterangan <span className="text-slate-400">(opsional, untuk semua file yang dipilih)</span>
         </span>
         <input
           value={caption}
@@ -100,7 +102,7 @@ export function MemberGallery({ angkatan }: { angkatan: number | null }) {
       <input
         ref={fileInput}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
         multiple
         hidden
         onChange={handleFiles}
@@ -112,7 +114,7 @@ export function MemberGallery({ angkatan }: { angkatan: number | null }) {
         className="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isUploading ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
-        {isUploading ? "Mengunggah..." : "Pilih & Unggah Foto"}
+        {isUploading ? "Mengunggah..." : "Pilih & Unggah Foto/Video"}
       </button>
 
       {message && (
@@ -130,18 +132,13 @@ export function MemberGallery({ angkatan }: { angkatan: number | null }) {
         <div className="grid grid-cols-3 gap-3 pt-2">
           {mine.data.map((photo) => (
             <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.image.url}
-                alt={photo.caption ?? "Foto galeri"}
-                className="h-full w-full object-cover"
-              />
+              <MediaThumb media={photo.image} alt={photo.caption ?? "Galeri"} />
               <button
                 type="button"
-                aria-label="Hapus foto"
+                aria-label="Hapus"
                 disabled={remove.isPending}
                 onClick={() => {
-                  if (window.confirm("Hapus foto ini dari galeri?")) remove.mutate(photo.id);
+                  if (window.confirm("Hapus dari galeri?")) remove.mutate(photo.id);
                 }}
                 className="absolute right-1.5 top-1.5 rounded-full bg-white/90 p-1.5 text-slate-600 shadow transition hover:text-rose-600"
               >

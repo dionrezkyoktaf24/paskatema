@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import type { GalleryAngkatan, GalleryPhoto } from "@/services/gallery";
 import { Footer } from "@/components/footer/Footer";
+import { MediaFull, MediaThumb } from "@/components/ui/MediaView";
 
 export default function GaleriPage() {
   // null = semua angkatan
@@ -59,7 +60,7 @@ export default function GaleriPage() {
           Galeri
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-          Foto Kegiatan Paskatema
+          Foto &amp; Video Kegiatan Paskatema
         </h1>
         <p className="mt-3 max-w-2xl text-base leading-8 text-slate-600">
           Dokumentasi dari setiap angkatan, ditambahkan langsung oleh anggota.
@@ -86,7 +87,7 @@ export default function GaleriPage() {
         </div>
 
         {photos.isLoading && (
-          <p className="mt-12 text-center text-sm text-slate-400">Memuat foto...</p>
+          <p className="mt-12 text-center text-sm text-slate-400">Memuat galeri...</p>
         )}
         {photos.isError && (
           <p className="mt-12 text-center text-sm text-rose-600">
@@ -95,7 +96,7 @@ export default function GaleriPage() {
         )}
         {photos.isSuccess && items.length === 0 && (
           <p className="mt-12 text-center text-sm text-slate-400">
-            Belum ada foto untuk ditampilkan.
+            Belum ada foto atau video untuk ditampilkan.
           </p>
         )}
 
@@ -107,11 +108,9 @@ export default function GaleriPage() {
               onClick={() => setLightbox(index)}
               className="group relative aspect-square overflow-hidden rounded-2xl bg-slate-100 text-left"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.image.url}
-                alt={photo.caption ?? `Foto angkatan ${photo.angkatan}`}
-                loading="lazy"
+              <MediaThumb
+                media={photo.image}
+                alt={photo.caption ?? `Galeri angkatan ${photo.angkatan}`}
                 className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
               />
               <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-xs font-medium text-white">
@@ -165,11 +164,10 @@ export default function GaleriPage() {
             </>
           )}
           <figure className="max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={current.image.url}
-              alt={current.caption ?? `Foto angkatan ${current.angkatan}`}
-              className="max-h-[80vh] w-auto rounded-xl object-contain"
+            <MediaFull
+              key={current.id}
+              media={current.image}
+              alt={current.caption ?? `Galeri angkatan ${current.angkatan}`}
             />
             <figcaption className="mt-3 text-center text-sm text-white">
               Angkatan {current.angkatan}

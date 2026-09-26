@@ -6,6 +6,7 @@ import { FileText, ImageOff } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { Modal } from "@/components/admin/Modal";
 import type { MediaItem } from "@/services/media";
+import { MediaThumb } from "@/components/ui/MediaView";
 
 export function MediaGalleryModal({
   onSelect,
@@ -35,7 +36,7 @@ export function MediaGalleryModal({
       {gallery.data && gallery.data.length > 0 && (
         <div className="grid max-h-[60vh] grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
           {gallery.data.map((item) => {
-            const isImage = item.mimeType.startsWith("image/");
+            const isVisual = item.mimeType.startsWith("image/") || item.mimeType.startsWith("video/");
             return (
               <button
                 key={item.id}
@@ -44,9 +45,8 @@ export function MediaGalleryModal({
                 title={item.fileName}
                 className="group flex aspect-square flex-col items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-rose-400 hover:ring-2 hover:ring-rose-100"
               >
-                {isImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.url} alt="" className="h-full w-full object-cover" />
+                {isVisual ? (
+                  <MediaThumb media={item} alt="" />
                 ) : (
                   <div className="flex flex-col items-center gap-1 px-2 text-center">
                     <FileText size={22} className="text-slate-400" />

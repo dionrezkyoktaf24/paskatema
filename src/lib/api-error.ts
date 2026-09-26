@@ -7,6 +7,8 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
     const message = (error.response?.data as { message?: string | string[] } | undefined)?.message;
     if (Array.isArray(message)) return message[0] ?? fallback;
     if (message) return message;
+  } else if (error instanceof Error && error.message) {
+    return error.message;
   }
   return fallback;
 }
