@@ -1,10 +1,24 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+
+import { apiClient } from "@/lib/api";
 import { eventCard } from "@/lib/constants";
+import { formatEventDate, type PublicEvent } from "@/services/event";
 
 export function EventSection() {
+  const events = useQuery({
+    queryKey: ["events-all"],
+    queryFn: async () => (await apiClient.get<PublicEvent[]>("/events")).data,
+  });
+  // Empat event terbaru yang punya poster.
+  const latest = (events.data ?? [])
+    .filter((e) => e.poster)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 4);
+
   return (
     <section id="event" className="relative overflow-hidden bg-[#FCF9F8] px-6 py-16 text-slate-950 lg:px-10 lg:py-24">
       <div className="pointer-events-none absolute -right-28 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-rose-100 blur-3xl" />
@@ -15,23 +29,31 @@ export function EventSection() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-slate-100"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-100 to-slate-200" />
-          <div className="relative grid h-[420px] sm:h-[480px] gap-4 p-6 sm:p-8">
-            <span className="absolute left-6 top-6 inline-flex rounded-full border border-rose-500/20 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-rose-600 shadow-lg shadow-rose-500/10">
-              {eventCard.label}
-            </span>
-            <div className="grid h-full w-full grid-cols-2 gap-4 pt-10">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="flex h-full flex-col justify-between rounded-[28px] border border-slate-200 bg-white/85 p-4 shadow-sm transition hover:-translate-y-1">
-                  <div className="h-24 rounded-[24px] bg-slate-200" />
-                  <div className="space-y-3">
-                    <div className="h-3 w-16 rounded-full bg-slate-300" />
-                    <div className="h-3 w-24 rounded-full bg-slate-300" />
-                  </div>
-                </div>
+          <span className="absolute left-6 top-6 z-10 inline-flex rounded-full border border-rose-500/20 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-rose-600 shadow-lg shadow-rose-500/10">
+            {latest.length > 0 ? "EVENT TERBARU" : eventCard.label}
+          </span>
+          {latest.length > 0 ? (
+            <div className={`grid h-[420px] gap-4 p-6 pt-20 sm:h-[480px] sm:p-8 sm:pt-20 ${latest.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+              {latest.map((event) => (
+                <Link
+                  key={event.id}
+                  href={`/event/${event.id}`}
+                  className="group relative overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={event.poster!.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 text-left text-white">
+                    <span className="block truncate text-sm font-semibold">{event.title}</span>
+                    <span className="block text-[11px] opacity-80">{formatEventDate(event.date)}</span>
+                  </span>
+                </Link>
               ))}
             </div>
-          </div>
+          ) : (
+            // Belum ada event berposter: pakai foto kegiatan Paskatema.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/image1.jpeg" alt="Kegiatan Paskatema" className="h-[420px] w-full object-cover sm:h-[480px]" />
+          )}
         </motion.div>
 
         <motion.div
@@ -55,17 +77,11 @@ export function EventSection() {
             ))}
           </div>
 
-          <a
-            href="#"
-            className="mt-10 inline-flex h-14 items-center justify-center rounded-full bg-rose-500 px-8 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-600"
-          >
-            Masuk Portal Antareja
-          </a>
           <Link
             href="/event"
-            className="mt-4 inline-flex items-center justify-center text-sm font-semibold text-rose-600 hover:underline"
+            className="mt-10 inline-flex h-14 items-center justify-center rounded-full bg-rose-500 px-8 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-600"
           >
-            Lihat agenda &amp; dokumentasi event →
+            Lihat Agenda &amp; Dokumentasi Event
           </Link>
         </motion.div>
       </div>

@@ -28,7 +28,7 @@ export function Footer() {
         </div>
       </div>
       <div className="mt-14 border-t border-slate-200 pt-6 text-sm text-slate-500">
-        © 2024 PASKATEMA. All Rights Reserved.
+        © {new Date().getFullYear()} PASKATEMA. All Rights Reserved.
       </div>
     </footer>
   );

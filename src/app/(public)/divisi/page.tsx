@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+
+import { Footer } from "@/components/footer/Footer";
 
 const divisionCards = [
   {
@@ -7,7 +10,6 @@ const divisionCards = [
     abbreviation: "DIKLAT",
     description:
       "Bertanggung jawab atas kurikulum pelatihan fisik, PBB (Peraturan Baris Berbaris), dan pembentukan mental anggota baru.",
-    coordinator: "Bagas Prakoso",
     accent: "bg-rose-50 border-rose-200 text-rose-700",
     image: "/image2.jpeg",
   },
@@ -16,7 +18,6 @@ const divisionCards = [
     abbreviation: "Humas",
     description:
       "Mengelola komunikasi eksternal, sosial media, dokumentasi kegiatan, dan menjaga citra positif PASKATEMA di mata publik.",
-    coordinator: "Nadia Safira",
     accent: "bg-amber-50 border-amber-200 text-amber-700",
     image: "/image3.jpeg",
   },
@@ -25,7 +26,6 @@ const divisionCards = [
     abbreviation: "DANLOG",
     description:
       "Inventarisasi, pemeliharaan atribut seragam, bendera, dan persiapan logistik teknis untuk setiap upacara maupun perlombaan.",
-    coordinator: "Rizky Maulana",
     accent: "bg-slate-100 border-slate-200 text-slate-700",
     image: "/image4.jpeg",
   },
@@ -34,13 +34,10 @@ const divisionCards = [
     abbreviation: "PROVOS",
     description:
       "Menegakkan aturan organisasi, memantau absensi, dan memastikan kode etik dijunjung tinggi oleh seluruh anggota.",
-    coordinator: "Agus Setiawan",
     accent: "bg-rose-50 border-rose-200 text-rose-700",
     image: "/image1.jpeg",
   },
 ];
-
-const filterTabs = ["Semua", "Teknis", "Support"];
 
 export const metadata: Metadata = {
   title: "Divisi",
@@ -63,18 +60,6 @@ export default function DivisiPage() {
         </section>
 
         <section className="overflow-hidden rounded-[40px] border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
-          <div className="mb-8 flex flex-wrap gap-3">
-            {filterTabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
           <div className="grid gap-6 xl:grid-cols-2">
             {divisionCards.map((division) => (
               <article key={division.title} className="overflow-hidden rounded-[32px] border border-slate-200 bg-slate-50 p-6 shadow-sm">
@@ -92,15 +77,20 @@ export default function DivisiPage() {
                   <p className="text-sm leading-7 text-slate-600">{division.description}</p>
                 </div>
 
-                <div className="mt-8 rounded-[28px] border border-slate-200 bg-white p-5 text-sm text-slate-700">
-                  <p className="uppercase tracking-[0.35em] text-slate-500">Koordinator</p>
-                  <p className="mt-3 text-lg font-semibold text-slate-950">{division.coordinator}</p>
-                </div>
               </article>
             ))}
           </div>
         </section>
+
+        <p className="mt-8 text-center text-sm text-slate-500">
+          Pengurus tiap divisi pada periode ini dapat dilihat di halaman{" "}
+          <Link href="/struktur" className="font-semibold text-rose-600 hover:underline">
+            Struktur
+          </Link>
+          .
+        </p>
       </div>
+      <Footer />
     </main>
   );
 }

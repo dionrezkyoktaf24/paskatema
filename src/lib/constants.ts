@@ -74,9 +74,10 @@ export const eventCard = {
 };
 
 export const footerLinks = [
-  { label: "Sejarah", href: "#about" },
-  { label: "Struktur", href: "#structure" },
-  { label: "Event Antareja", href: "#event" },
+  { label: "Profil & Sejarah", href: "/profil" },
+  { label: "Struktur", href: "/struktur" },
+  { label: "Event", href: "/event" },
+  { label: "Pendaftaran", href: "/pendaftaran" },
 ];
 
 export const contactInfo = {
