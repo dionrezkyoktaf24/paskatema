@@ -9,6 +9,8 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Modal } from "@/components/admin/Modal";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_LABEL, type UserRole } from "@/lib/roles";
+import { apiErrorMessage } from "@/lib/api-error";
+import { MEMBER_STATUS_CLASS, MEMBER_STATUS_LABEL, type MemberStatus } from "@/services/member";
 
 interface MemberItem {
   id: string;
@@ -16,6 +18,7 @@ interface MemberItem {
   email: string;
   role: UserRole;
   angkatan: number | null;
+  memberStatus: MemberStatus;
 }
 
 interface MemberListResponse {
@@ -40,8 +43,15 @@ export function AnggotaTab() {
   });
 
   const updateAngkatan = useMutation({
-    mutationFn: async ({ id, angkatan }: { id: string; angkatan: number | null }) =>
-      (await apiClient.patch(`/user/${id}`, { angkatan })).data,
+    mutationFn: async ({
+      id,
+      angkatan,
+      memberStatus,
+    }: {
+      id: string;
+      angkatan: number | null;
+      memberStatus: MemberStatus;
+    }) => (await apiClient.patch(`/user/${id}`, { angkatan, memberStatus })).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-members"] }),
   });
 
@@ -55,11 +65,14 @@ export function AnggotaTab() {
   const [editing, setEditing] = useState<MemberItem | null>(null);
   const [angkatan, setAngkatan] = useState("");
   const [role, setRole] = useState<UserRole>("USER");
+  const [memberStatus, setMemberStatus] = useState<MemberStatus>("AKTIF");
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   function openEdit(item: MemberItem) {
     setAngkatan(item.angkatan?.toString() ?? "");
     setRole(item.role);
+    setMemberStatus(item.memberStatus);
     setFormError(null);
     setEditing(item);
   }
@@ -73,13 +86,14 @@ export function AnggotaTab() {
       await updateAngkatan.mutateAsync({
         id: editing.id,
         angkatan: angkatan ? Number(angkatan) : null,
+        memberStatus,
       });
       if (role !== editing.role) {
         await updateRole.mutateAsync({ id: editing.id, role });
       }
       setEditing(null);
-    } catch {
-      setFormError("Gagal menyimpan perubahan anggota.");
+    } catch (err) {
+      setFormError(apiErrorMessage(err, "Gagal menyimpan perubahan anggota."));
     }
   }
 
@@ -87,17 +101,25 @@ export function AnggotaTab() {
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Cari nama atau email..."
-          className="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative w-full max-w-sm">
+          <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Cari nama atau email..."
+            className="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+          />
+        </div>
+        <button
+          onClick={() => setBulkOpen(true)}
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
+        >
+          Ubah status satu angkatan
+        </button>
       </div>
 
       <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
@@ -107,6 +129,7 @@ export function AnggotaTab() {
               <th className="px-5 py-3">Nama</th>
               <th className="px-5 py-3">Email</th>
               <th className="px-5 py-3">Angkatan</th>
+              <th className="px-5 py-3">Status</th>
               <th className="px-5 py-3">Role</th>
               <th className="px-5 py-3 text-right">Aksi</th>
             </tr>
@@ -114,14 +137,14 @@ export function AnggotaTab() {
           <tbody>
             {list.isLoading && (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
                   Memuat...
                 </td>
               </tr>
             )}
             {list.data?.data.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
                   Tidak ada anggota ditemukan.
                 </td>
               </tr>
@@ -132,6 +155,11 @@ export function AnggotaTab() {
                 <td className="px-5 py-4 text-slate-600">{item.email}</td>
                 <td className="px-5 py-4 text-slate-600">
                   {item.angkatan !== null ? `Angkatan ${item.angkatan}` : "—"}
+                </td>
+                <td className="px-5 py-4">
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${MEMBER_STATUS_CLASS[item.memberStatus]}`}>
+                    {MEMBER_STATUS_LABEL[item.memberStatus]}
+                  </span>
                 </td>
                 <td className="px-5 py-4">
                   <span
@@ -204,6 +232,18 @@ export function AnggotaTab() {
             </label>
 
             <label className="block space-y-2">
+              <span className="text-sm font-medium text-slate-700">Status keanggotaan</span>
+              <select
+                value={memberStatus}
+                onChange={(e) => setMemberStatus(e.target.value as MemberStatus)}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+              >
+                <option value="AKTIF">Aktif</option>
+                <option value="PURNA">Purna (alumni)</option>
+              </select>
+            </label>
+
+            <label className="block space-y-2">
               <span className="text-sm font-medium text-slate-700">Role</span>
               <select
                 value={role}
@@ -233,6 +273,88 @@ export function AnggotaTab() {
           </form>
         </Modal>
       )}
+
+      {bulkOpen && (
+        <BulkStatusModal
+          onClose={() => setBulkOpen(false)}
+          onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-members"] })}
+        />
+      )}
     </div>
+  );
+}
+
+function BulkStatusModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [angkatan, setAngkatan] = useState("");
+  const [status, setStatus] = useState<MemberStatus>("PURNA");
+  const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const apply = useMutation({
+    mutationFn: async () =>
+      (
+        await apiClient.patch<{ message: string }>("/user/status-by-angkatan", {
+          angkatan: Number(angkatan),
+          memberStatus: status,
+        })
+      ).data,
+    onSuccess: (data) => {
+      setResult(data.message);
+      onDone();
+    },
+    onError: (err) => setError(apiErrorMessage(err, "Gagal mengubah status.")),
+  });
+
+  return (
+    <Modal title="Ubah Status Satu Angkatan" onClose={onClose}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setError(null);
+          setResult(null);
+          apply.mutate();
+        }}
+        className="space-y-4"
+      >
+        <p className="text-sm text-slate-500">
+          Contoh: saat satu angkatan lulus, jadikan semua anggotanya Purna sekaligus.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-slate-700">Angkatan</span>
+            <input
+              required
+              type="number"
+              min={1}
+              value={angkatan}
+              onChange={(e) => setAngkatan(e.target.value)}
+              placeholder="mis. 30"
+              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+            />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-slate-700">Status baru</span>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as MemberStatus)}
+              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+            >
+              <option value="PURNA">Purna</option>
+              <option value="AKTIF">Aktif</option>
+            </select>
+          </label>
+        </div>
+        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {result && <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{result}</p>}
+        <button
+          type="submit"
+          disabled={apply.isPending}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
+        >
+          {apply.isPending && <Loader2 size={16} className="animate-spin" />}
+          Terapkan
+        </button>
+      </form>
+    </Modal>
   );
 }

@@ -11,6 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canUsePanel, homeForRole, panelLabel, type UserRole } from "@/lib/roles";
 import { authInputClass } from "@/components/auth/AuthCard";
 import { MemberGallery } from "@/components/auth/MemberGallery";
+import { apiErrorMessage } from "@/lib/api-error";
+import { MEMBER_STATUS_LABEL, type MemberStatus } from "@/services/member";
 
 interface Profile {
   id: string;
@@ -20,6 +22,13 @@ interface Profile {
   phone: string | null;
   bio: string | null;
   angkatan: number | null;
+  memberStatus: MemberStatus;
+  education: string | null;
+  occupation: string | null;
+  skills: string[];
+  linkedinUrl: string | null;
+  instagram: string | null;
+  profilePublic: boolean;
 }
 
 export default function AkunPage() {
@@ -65,7 +74,21 @@ export default function AkunPage() {
                   : "Belum diisi admin"}
               </dd>
             </div>
+            {profile.data && (
+              <div>
+                <dt className="text-slate-400">Status</dt>
+                <dd className="font-medium text-slate-800">{MEMBER_STATUS_LABEL[profile.data.memberStatus]}</dd>
+              </div>
+            )}
           </dl>
+          {profile.data?.angkatan != null && (
+            <Link
+              href={`/anggota/${profile.data.id}`}
+              className="mt-4 inline-block text-sm font-semibold text-rose-600 hover:underline"
+            >
+              Lihat profil saya →
+            </Link>
+          )}
         </div>
 
         {profile.data ? (
@@ -103,6 +126,13 @@ function ProfileForm({
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [bio, setBio] = useState(profile.bio ?? "");
+  const [education, setEducation] = useState(profile.education ?? "");
+  const [occupation, setOccupation] = useState(profile.occupation ?? "");
+  const [skills, setSkills] = useState(profile.skills.join(", "));
+  const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedinUrl ?? "");
+  const [instagram, setInstagram] = useState(profile.instagram ?? "");
+  const [profilePublic, setProfilePublic] = useState(profile.profilePublic);
+  const isPurna = profile.memberStatus === "PURNA";
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,6 +143,16 @@ function ProfileForm({
           name: name.trim(),
           phone: phone.trim(),
           bio: bio.trim(),
+          education: education.trim(),
+          occupation: occupation.trim(),
+          skills: skills
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+          linkedinUrl: linkedinUrl.trim(),
+          instagram: instagram.trim(),
+          // Hanya dikirim untuk Purna; backend menolak profil publik untuk Aktif.
+          ...(isPurna && { profilePublic }),
         })
       ).data,
     onSuccess: (updated) => {
@@ -122,7 +162,7 @@ function ProfileForm({
       if (token && user) setAuth(token, { ...user, name: updated.name });
       setSaved(true);
     },
-    onError: () => setError("Gagal menyimpan. Coba lagi."),
+    onError: (err) => setError(apiErrorMessage(err, "Gagal menyimpan. Coba lagi.")),
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -165,6 +205,81 @@ function ProfileForm({
           className={authInputClass}
         />
       </label>
+
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-950">Profil profesional</h3>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Tampil di profil anggota Anda dan hanya bisa dilihat sesama anggota Paskatema yang login.
+          </p>
+        </div>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium text-slate-700">Pendidikan / kampus</span>
+          <input
+            maxLength={150}
+            value={education}
+            onChange={(e) => setEducation(e.target.value)}
+            placeholder="mis. Teknik Informatika, Universitas Brawijaya"
+            className={authInputClass}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium text-slate-700">Pekerjaan / instansi</span>
+          <input
+            maxLength={150}
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+            placeholder="mis. Software Engineer di PT Telkom Indonesia"
+            className={authInputClass}
+          />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium text-slate-700">Keahlian</span>
+          <input
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+            placeholder="Pisahkan dengan koma, mis. PBB, Desain Grafis, Public Speaking"
+            className={authInputClass}
+          />
+        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-slate-700">LinkedIn</span>
+            <input
+              type="url"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://www.linkedin.com/in/..."
+              className={authInputClass}
+            />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-slate-700">Instagram</span>
+            <input
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="@username"
+              className={authInputClass}
+            />
+          </label>
+        </div>
+        {isPurna && (
+          <label className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4 text-sm">
+            <input
+              type="checkbox"
+              checked={profilePublic}
+              onChange={(e) => setProfilePublic(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-rose-600"
+            />
+            <span>
+              <span className="font-semibold text-slate-900">Tampilkan profil lengkap ke publik</span>
+              <span className="mt-0.5 block text-xs text-slate-500">
+                Pendidikan, pekerjaan, keahlian, dan tautan Anda bisa dilihat siapa pun, termasuk mesin pencari.
+              </span>
+            </span>
+          </label>
+        )}
+      </div>
 
       {error && (
         <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
