@@ -31,6 +31,8 @@ export interface RegisterInput {
   email: string;
   password: string;
   phone?: string;
+  /** Diisi bila mendaftar sebagai purna; diverifikasi admin. */
+  purna?: { angkatan: number; graduationYear?: number; note?: string };
 }
 
 interface AuthContextValue {

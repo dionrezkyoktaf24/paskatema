@@ -6,18 +6,21 @@ import { PeriodeTab } from "./PeriodeTab";
 import { JabatanTab } from "./JabatanTab";
 import { StrukturTab } from "./StrukturTab";
 import { AnggotaTab } from "./AnggotaTab";
+import { PurnaTab, usePurnaClaims } from "./PurnaTab";
 
 const tabs = [
   { key: "periode", label: "Periode" },
   { key: "jabatan", label: "Jabatan" },
   { key: "struktur", label: "Struktur" },
   { key: "anggota", label: "Anggota" },
+  { key: "purna", label: "Verifikasi Purna" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
 
 export default function AdminStrukturPage() {
   const [active, setActive] = useState<TabKey>("periode");
+  const pendingPurna = usePurnaClaims().data?.length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -40,6 +43,11 @@ export default function AdminStrukturPage() {
             }`}
           >
             {tab.label}
+            {tab.key === "purna" && pendingPurna > 0 && (
+              <span className="ml-1.5 rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                {pendingPurna}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -48,6 +56,7 @@ export default function AdminStrukturPage() {
       {active === "jabatan" && <JabatanTab />}
       {active === "struktur" && <StrukturTab />}
       {active === "anggota" && <AnggotaTab />}
+      {active === "purna" && <PurnaTab />}
     </div>
   );
 }

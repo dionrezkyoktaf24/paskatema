@@ -112,6 +112,12 @@ export default function PendaftaranPage() {
 
             {notOpen && (
               <div className="py-10 text-center">
+                <p className="mb-6 text-sm text-slate-500">
+                  Purna (alumni)?{" "}
+                  <Link href="/daftar?as=purna" className="font-semibold text-rose-600 hover:underline">
+                    Daftar sebagai purna di sini
+                  </Link>
+                </p>
                 <h2 className="text-2xl font-semibold text-slate-950">Pendaftaran belum dibuka</h2>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600">
                   Saat ini belum ada rekrutmen yang dibuka. Pantau{" "}
@@ -137,6 +143,13 @@ export default function PendaftaranPage() {
                     <p className="font-semibold uppercase tracking-[0.28em] text-slate-900">Cara daftar</p>
                     <p className="mt-4 leading-7">
                       Buat akun atau masuk terlebih dahulu, lalu isi formulir ini. Status pendaftaran bisa dilihat kembali di halaman ini.
+                    </p>
+                    <p className="mt-3 leading-7">
+                      Sudah pernah menjadi anggota?{" "}
+                      <Link href="/daftar?as=purna" className="font-semibold text-rose-600 hover:underline">
+                        Daftar sebagai purna
+                      </Link>
+                      , bukan lewat formulir ini.
                     </p>
                   </div>
                 </div>

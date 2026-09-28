@@ -12,11 +12,18 @@ export default function DaftarPage() {
   const { user, isLoading, register } = useAuth();
   const router = useRouter();
   const [nextQuery, setNextQuery] = useState("");
+  // Calon anggota baru vs purna (alumni). ?as=purna memilih purna dari awal.
+  const [asPurna, setAsPurna] = useState(false);
+  const [claimAngkatan, setClaimAngkatan] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  const [claimNote, setClaimNote] = useState("");
 
   useEffect(() => {
     const next = nextPathFromUrl();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- baca URL hanya di client
+    /* eslint-disable react-hooks/set-state-in-effect -- baca URL hanya di client */
     if (next) setNextQuery(`?next=${encodeURIComponent(next)}`);
+    if (new URLSearchParams(window.location.search).get("as") === "purna") setAsPurna(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const [name, setName] = useState("");
@@ -37,7 +44,19 @@ export default function DaftarPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim() });
+      await register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        phone: phone.trim(),
+        ...(asPurna && {
+          purna: {
+            angkatan: Number(claimAngkatan),
+            graduationYear: graduationYear ? Number(graduationYear) : undefined,
+            note: claimNote.trim() || undefined,
+          },
+        }),
+      });
       router.push(nextPathFromUrl() ?? "/akun");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal mendaftar.");
@@ -49,7 +68,11 @@ export default function DaftarPage() {
   return (
     <AuthCard
       title="Buat Akun"
-      subtitle="Akun anggota Paskatema. Data angkatan diisi oleh admin."
+      subtitle={
+        asPurna
+          ? "Untuk purna (alumni) Paskatema. Admin akan memverifikasi angkatan Anda."
+          : "Akun anggota Paskatema. Data angkatan diisi oleh admin."
+      }
       footer={
         <>
           Sudah punya akun?{" "}
@@ -60,6 +83,26 @@ export default function DaftarPage() {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1 text-sm font-semibold" role="radiogroup" aria-label="Jenis pendaftar">
+          {[
+            { value: false, label: "Calon / anggota aktif" },
+            { value: true, label: "Purna (alumni)" },
+          ].map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              role="radio"
+              aria-checked={asPurna === option.value}
+              onClick={() => setAsPurna(option.value)}
+              className={`rounded-xl px-3 py-2 transition ${
+                asPurna === option.value ? "bg-white text-rose-600 shadow-sm" : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-slate-700">Nama lengkap</span>
           <input
@@ -106,6 +149,55 @@ export default function DaftarPage() {
           />
           <span className="text-xs text-slate-400">Minimal 8 karakter.</span>
         </label>
+
+        {asPurna && (
+          <div className="space-y-4 rounded-2xl border border-rose-100 bg-rose-50/60 p-4">
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-slate-700">Angkatan</span>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  max={999}
+                  value={claimAngkatan}
+                  onChange={(e) => setClaimAngkatan(e.target.value)}
+                  placeholder="mis. 25"
+                  className={authInputClass}
+                />
+              </label>
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-slate-700">
+                  Tahun lulus <span className="text-slate-400">(opsional)</span>
+                </span>
+                <input
+                  type="number"
+                  min={1980}
+                  max={2100}
+                  value={graduationYear}
+                  onChange={(e) => setGraduationYear(e.target.value)}
+                  placeholder="mis. 2021"
+                  className={authInputClass}
+                />
+              </label>
+            </div>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">
+                Catatan untuk admin <span className="text-slate-400">(opsional)</span>
+              </span>
+              <input
+                maxLength={300}
+                value={claimNote}
+                onChange={(e) => setClaimNote(e.target.value)}
+                placeholder="mis. jabatan dulu, nama panggilan"
+                className={authInputClass}
+              />
+            </label>
+            <p className="text-xs text-slate-500">
+              Setelah diverifikasi admin, Anda tercatat sebagai Purna dan bisa masuk direktori, forum, dan jaringan alumni.
+            </p>
+          </div>
+        )}
 
         {error && (
           <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">

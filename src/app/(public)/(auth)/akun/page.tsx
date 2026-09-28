@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canUsePanel, homeForRole, panelLabel, type UserRole } from "@/lib/roles";
 import { authInputClass } from "@/components/auth/AuthCard";
 import { MemberGallery } from "@/components/auth/MemberGallery";
+import { PurnaClaimCard } from "@/components/auth/PurnaClaimCard";
 import { apiErrorMessage } from "@/lib/api-error";
 import { MEMBER_STATUS_LABEL, type MemberStatus } from "@/services/member";
 
@@ -29,6 +30,8 @@ interface Profile {
   linkedinUrl: string | null;
   instagram: string | null;
   profilePublic: boolean;
+  purnaClaimAngkatan: number | null;
+  purnaClaimAt: string | null;
 }
 
 export default function AkunPage() {
@@ -90,6 +93,13 @@ export default function AkunPage() {
             </Link>
           )}
         </div>
+
+        {profile.data && profile.data.angkatan === null && (
+          <PurnaClaimCard
+            claimAngkatan={profile.data.purnaClaimAngkatan}
+            claimAt={profile.data.purnaClaimAt}
+          />
+        )}
 
         {profile.data ? (
           <ProfileForm

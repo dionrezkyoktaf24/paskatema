@@ -31,13 +31,22 @@ export function AnggotaTab() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<MemberStatus | "">("");
+  const [angkatanFilter, setAngkatanFilter] = useState("");
+  const debouncedAngkatan = useDebouncedValue(angkatanFilter);
 
   const list = useQuery({
-    queryKey: ["admin-members", debouncedSearch, page],
+    queryKey: ["admin-members", debouncedSearch, page, statusFilter, debouncedAngkatan],
     queryFn: async () =>
       (
         await apiClient.get<MemberListResponse>("/user", {
-          params: { search: debouncedSearch || undefined, page, limit: 15 },
+          params: {
+            search: debouncedSearch || undefined,
+            memberStatus: statusFilter || undefined,
+            angkatan: debouncedAngkatan ? Number(debouncedAngkatan) : undefined,
+            page,
+            limit: 15,
+          },
         })
       ).data,
   });
@@ -113,6 +122,38 @@ export function AnggotaTab() {
             placeholder="Cari nama atau email..."
             className="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-4 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
           />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as MemberStatus | "");
+              setPage(1);
+            }}
+            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-rose-400"
+            aria-label="Filter status"
+          >
+            <option value="">Semua status</option>
+            <option value="AKTIF">Aktif</option>
+            <option value="PURNA">Purna</option>
+          </select>
+          <input
+            type="number"
+            min={1}
+            value={angkatanFilter}
+            onChange={(e) => {
+              setAngkatanFilter(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Angkatan"
+            aria-label="Filter angkatan"
+            className="w-28 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-rose-400"
+          />
+          {list.data && (
+            <span className="text-sm text-slate-500">
+              {list.data.meta.total} {statusFilter === "PURNA" ? "purna" : "orang"}
+            </span>
+          )}
         </div>
         <button
           onClick={() => setBulkOpen(true)}
