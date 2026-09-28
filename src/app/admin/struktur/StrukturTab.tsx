@@ -138,7 +138,7 @@ export function StrukturTab() {
             <tr>
               <th className="px-5 py-3">Anggota</th>
               <th className="px-5 py-3">Jabatan</th>
-              <th className="px-5 py-3">Periode</th>
+              <th className="px-5 py-3">Periode Kepengurusan</th>
               <th className="px-5 py-3 text-right">Aksi</th>
             </tr>
           </thead>
@@ -215,7 +215,7 @@ export function StrukturTab() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm font-medium text-slate-700">Periode</span>
+                <span className="text-sm font-medium text-slate-700">Periode kepengurusan</span>
                 <select
                   required
                   value={periodId}

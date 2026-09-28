@@ -9,7 +9,7 @@ import { AnggotaTab } from "./AnggotaTab";
 import { PurnaTab, usePurnaClaims } from "./PurnaTab";
 
 const tabs = [
-  { key: "periode", label: "Periode" },
+  { key: "periode", label: "Periode Kepengurusan" },
   { key: "jabatan", label: "Jabatan" },
   { key: "struktur", label: "Struktur" },
   { key: "anggota", label: "Anggota" },
@@ -25,7 +25,7 @@ export default function AdminStrukturPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-950">Struktur &amp; Periode</h1>
+        <h1 className="text-2xl font-semibold text-slate-950">Struktur &amp; Kepengurusan</h1>
         <p className="text-sm text-slate-500">
           Kelola periode kepengurusan, jabatan, penempatan anggota, dan angkatan.
         </p>

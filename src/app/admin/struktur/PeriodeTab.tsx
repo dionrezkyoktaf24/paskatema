@@ -68,13 +68,16 @@ export function PeriodeTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">Periode kepengurusan Paskatema.</p>
+        <p className="max-w-xl text-sm text-slate-500">
+          Masa jabatan pengurus, mis. 2026/2027 (bukan angkatan). Hanya satu yang aktif: dipakai untuk bagan di
+          /struktur, pengurus di /profil, dan menentukan siapa Bendahara.
+        </p>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700"
         >
           <Plus size={16} />
-          Tambah Periode
+          Tambah Periode Kepengurusan
         </button>
       </div>
 
@@ -82,7 +85,7 @@ export function PeriodeTab() {
         <table className="min-w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-5 py-3">Nama Periode</th>
+              <th className="px-5 py-3">Periode Kepengurusan</th>
               <th className="px-5 py-3">Status</th>
               <th className="px-5 py-3 text-right">Aksi</th>
             </tr>
@@ -142,10 +145,10 @@ export function PeriodeTab() {
       </div>
 
       {editing && (
-        <Modal title={editing === "new" ? "Tambah Periode" : "Edit Periode"} onClose={() => setEditing(null)}>
+        <Modal title={editing === "new" ? "Tambah Periode Kepengurusan" : "Edit Periode Kepengurusan"} onClose={() => setEditing(null)}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-700">Nama Periode</span>
+              <span className="text-sm font-medium text-slate-700">Nama periode kepengurusan</span>
               <input
                 required
                 placeholder="mis. 2025/2026"

@@ -249,7 +249,7 @@ function RegistrationDetail({
             </button>
           </div>
           <p className="text-xs text-slate-400">
-            Setelah diterima, isi angkatan anggota di Struktur &amp; Periode → Anggota agar ia bisa ikut forum, galeri, dan pemilihan.
+            Setelah diterima, isi angkatan anggota di Struktur &amp; Kepengurusan → Anggota agar ia bisa ikut forum, galeri, dan pemilihan.
           </p>
         </div>
       )}

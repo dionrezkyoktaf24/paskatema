@@ -86,7 +86,7 @@ export default function AdminVotingPage() {
               <div>
                 <p className="font-semibold text-slate-900">{voting.title}</p>
                 <p className="text-xs text-slate-500">
-                  Periode {voting.period.name} · {voting.candidates.length} kandidat
+                  Periode kepengurusan {voting.period.name} · {voting.candidates.length} kandidat
                 </p>
               </div>
               <span

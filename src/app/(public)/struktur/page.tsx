@@ -151,7 +151,7 @@ export default function StrukturPage() {
         {periodList.length > 1 && (
           <div className="mb-8 flex justify-center">
             <label className="flex items-center gap-3 text-sm text-slate-600">
-              Periode
+              Periode kepengurusan
               <select
                 value={periodId ?? ""}
                 onChange={(e) => setSelected(e.target.value)}

@@ -557,7 +557,7 @@ export default function AdminKeuanganPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block space-y-2">
-                <span className="text-sm font-medium text-slate-700">Periode (opsional)</span>
+                <span className="text-sm font-medium text-slate-700">Periode kepengurusan (opsional)</span>
                 <select
                   value={periodId}
                   onChange={(e) => setPeriodId(e.target.value)}

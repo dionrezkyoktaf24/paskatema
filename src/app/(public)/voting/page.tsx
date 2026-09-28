@@ -84,7 +84,7 @@ export default function VotingPage() {
           </h1>
           {active.data && (
             <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-slate-600">
-              Periode {active.data.period.name}. Setiap anggota hanya punya satu suara dan pilihan tidak bisa diubah.
+              Periode kepengurusan {active.data.period.name}. Setiap anggota hanya punya satu suara dan pilihan tidak bisa diubah.
             </p>
           )}
         </section>

@@ -37,7 +37,7 @@ const navGroups = [
   {
     title: "Organisasi",
     items: [
-      { href: "/admin/struktur", label: "Struktur & Periode", icon: Users2 },
+      { href: "/admin/struktur", label: "Struktur & Kepengurusan", icon: Users2 },
       { href: "/admin/pendaftaran", label: "Pendaftaran", icon: ClipboardList },
       { href: "/admin/voting", label: "Voting", icon: Vote },
     ],
