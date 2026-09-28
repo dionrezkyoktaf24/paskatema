@@ -10,12 +10,27 @@ import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
 import { AlreadySignedIn } from "@/components/auth/AlreadySignedIn";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 
+type RegisterKind = "calon" | "aktif" | "purna";
+
+const KIND_OPTIONS: { value: RegisterKind; label: string }[] = [
+  { value: "calon", label: "Calon anggota baru" },
+  { value: "aktif", label: "Anggota aktif" },
+  { value: "purna", label: "Purna (alumni)" },
+];
+
+const KIND_SUBTITLE: Record<RegisterKind, string> = {
+  calon: "Buat akun untuk mengikuti rekrutmen anggota baru Paskatema.",
+  aktif: "Untuk anggota Paskatema saat ini. Admin akan memverifikasi angkatan Anda.",
+  purna: "Untuk purna (alumni) Paskatema. Admin akan memverifikasi angkatan Anda.",
+};
+
 export default function DaftarPage() {
   const { user, isLoading, register } = useAuth();
   const router = useRouter();
   const [nextQuery, setNextQuery] = useState("");
-  // Calon anggota baru vs purna (alumni). ?as=purna memilih purna dari awal.
-  const [asPurna, setAsPurna] = useState(false);
+  // Jenis pendaftar. ?as=aktif / ?as=purna / ?as=calon memilih dari awal.
+  const [kind, setKind] = useState<RegisterKind>("calon");
+  const isMember = kind !== "calon";
   const [claimAngkatan, setClaimAngkatan] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
   const [claimNote, setClaimNote] = useState("");
@@ -24,7 +39,8 @@ export default function DaftarPage() {
     const next = nextPathFromUrl();
     /* eslint-disable react-hooks/set-state-in-effect -- baca URL hanya di client */
     if (next) setNextQuery(`?next=${encodeURIComponent(next)}`);
-    if (new URLSearchParams(window.location.search).get("as") === "purna") setAsPurna(true);
+    const as = new URLSearchParams(window.location.search).get("as");
+    if (as === "aktif" || as === "purna" || as === "calon") setKind(as);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
@@ -49,15 +65,17 @@ export default function DaftarPage() {
         email: email.trim(),
         password,
         phone: phone.trim(),
-        ...(asPurna && {
-          purna: {
+        ...(isMember && {
+          membership: {
+            status: kind === "purna" ? "PURNA" : "AKTIF",
             angkatan: Number(claimAngkatan),
-            graduationYear: graduationYear ? Number(graduationYear) : undefined,
+            graduationYear: kind === "purna" && graduationYear ? Number(graduationYear) : undefined,
             note: claimNote.trim() || undefined,
           },
         }),
       });
-      router.push(nextPathFromUrl() ?? "/akun");
+      // Calon anggota langsung ke formulir rekrutmen.
+      router.push(nextPathFromUrl() ?? (kind === "calon" ? "/pendaftaran" : "/akun"));
     } catch (err) {
       setJustSignedIn(false);
       setError(err instanceof Error ? err.message : "Gagal mendaftar.");
@@ -69,11 +87,7 @@ export default function DaftarPage() {
   return (
     <AuthCard
       title="Buat Akun"
-      subtitle={
-        asPurna
-          ? "Untuk purna (alumni) Paskatema. Admin akan memverifikasi angkatan Anda."
-          : "Akun anggota Paskatema. Data angkatan diisi oleh admin."
-      }
+      subtitle={KIND_SUBTITLE[kind]}
       footer={
         <>
           Sudah punya akun?{" "}
@@ -87,19 +101,16 @@ export default function DaftarPage() {
         <AlreadySignedIn />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1 text-sm font-semibold" role="radiogroup" aria-label="Jenis pendaftar">
-            {[
-              { value: false, label: "Calon / anggota aktif" },
-              { value: true, label: "Purna (alumni)" },
-            ].map((option) => (
+          <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-100 p-1 text-xs font-semibold sm:text-sm" role="radiogroup" aria-label="Jenis pendaftar">
+            {KIND_OPTIONS.map((option) => (
               <button
-                key={option.label}
+                key={option.value}
                 type="button"
                 role="radio"
-                aria-checked={asPurna === option.value}
-                onClick={() => setAsPurna(option.value)}
-                className={`rounded-xl px-3 py-2 transition ${
-                  asPurna === option.value ? "bg-white text-rose-600 shadow-sm" : "text-slate-500 hover:text-slate-800"
+                aria-checked={kind === option.value}
+                onClick={() => setKind(option.value)}
+                className={`rounded-xl px-2 py-2 leading-tight transition ${
+                  kind === option.value ? "bg-white text-rose-600 shadow-sm" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 {option.label}
@@ -153,9 +164,15 @@ export default function DaftarPage() {
             <span className="text-xs text-slate-400">Minimal 8 karakter.</span>
           </label>
 
-          {asPurna && (
+          {kind === "calon" && (
+            <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
+              Setelah akun dibuat, Anda diarahkan ke formulir pendaftaran anggota baru (bila rekrutmen sedang dibuka).
+            </p>
+          )}
+
+          {isMember && (
             <div className="space-y-4 rounded-2xl border border-rose-100 bg-rose-50/60 p-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid gap-3 ${kind === "purna" ? "grid-cols-2" : "grid-cols-1"}`}>
                 <label className="block space-y-1.5">
                   <span className="text-sm font-medium text-slate-700">Angkatan</span>
                   <input
@@ -165,24 +182,26 @@ export default function DaftarPage() {
                     max={999}
                     value={claimAngkatan}
                     onChange={(e) => setClaimAngkatan(e.target.value)}
-                    placeholder="mis. 25"
+                    placeholder={kind === "purna" ? "mis. 25" : "mis. 32"}
                     className={authInputClass}
                   />
                 </label>
-                <label className="block space-y-1.5">
-                  <span className="text-sm font-medium text-slate-700">
-                    Tahun lulus <span className="text-slate-400">(opsional)</span>
-                  </span>
-                  <input
-                    type="number"
-                    min={1980}
-                    max={2100}
-                    value={graduationYear}
-                    onChange={(e) => setGraduationYear(e.target.value)}
-                    placeholder="mis. 2021"
-                    className={authInputClass}
-                  />
-                </label>
+                {kind === "purna" && (
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-medium text-slate-700">
+                      Tahun lulus <span className="text-slate-400">(opsional)</span>
+                    </span>
+                    <input
+                      type="number"
+                      min={1980}
+                      max={2100}
+                      value={graduationYear}
+                      onChange={(e) => setGraduationYear(e.target.value)}
+                      placeholder="mis. 2021"
+                      className={authInputClass}
+                    />
+                  </label>
+                )}
               </div>
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium text-slate-700">
@@ -192,12 +211,13 @@ export default function DaftarPage() {
                   maxLength={300}
                   value={claimNote}
                   onChange={(e) => setClaimNote(e.target.value)}
-                  placeholder="mis. jabatan dulu, nama panggilan"
+                  placeholder={kind === "purna" ? "mis. jabatan dulu, nama panggilan" : "mis. kelas XI RPL 2, jabatan"}
                   className={authInputClass}
                 />
               </label>
               <p className="text-xs text-slate-500">
-                Setelah diverifikasi admin, Anda tercatat sebagai Purna dan bisa masuk direktori, forum, dan jaringan alumni.
+                Setelah diverifikasi admin, Anda tercatat sebagai {kind === "purna" ? "Purna" : "anggota Aktif"} dan bisa
+                memakai forum, galeri angkatan, direktori, dan pemilihan.
               </p>
             </div>
           )}

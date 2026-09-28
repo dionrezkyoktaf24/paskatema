@@ -113,10 +113,15 @@ export default function PendaftaranPage() {
             {notOpen && (
               <div className="py-10 text-center">
                 <p className="mb-6 text-sm text-slate-500">
-                  Purna (alumni)?{" "}
+                  Sudah menjadi anggota? Daftar sebagai{" "}
+                  <Link href="/daftar?as=aktif" className="font-semibold text-rose-600 hover:underline">
+                    anggota aktif
+                  </Link>{" "}
+                  atau{" "}
                   <Link href="/daftar?as=purna" className="font-semibold text-rose-600 hover:underline">
-                    Daftar sebagai purna di sini
+                    purna
                   </Link>
+                  .
                 </p>
                 <h2 className="text-2xl font-semibold text-slate-950">Pendaftaran belum dibuka</h2>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600">
@@ -145,9 +150,13 @@ export default function PendaftaranPage() {
                       Buat akun atau masuk terlebih dahulu, lalu isi formulir ini. Status pendaftaran bisa dilihat kembali di halaman ini.
                     </p>
                     <p className="mt-3 leading-7">
-                      Sudah pernah menjadi anggota?{" "}
+                      Sudah menjadi anggota? Daftar sebagai{" "}
+                      <Link href="/daftar?as=aktif" className="font-semibold text-rose-600 hover:underline">
+                        anggota aktif
+                      </Link>{" "}
+                      atau{" "}
                       <Link href="/daftar?as=purna" className="font-semibold text-rose-600 hover:underline">
-                        Daftar sebagai purna
+                        purna
                       </Link>
                       , bukan lewat formulir ini.
                     </p>
@@ -159,7 +168,7 @@ export default function PendaftaranPage() {
                     <p className="text-base font-semibold text-slate-950">Masuk atau buat akun untuk mendaftar</p>
                     <p className="mt-2 text-sm text-slate-600">Akun dipakai untuk menyimpan pendaftaran dan melihat statusnya.</p>
                     <div className="mt-5 flex flex-wrap justify-center gap-3">
-                      <Link href="/daftar?next=/pendaftaran" className="rounded-full bg-rose-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700">
+                      <Link href="/daftar?as=calon&next=/pendaftaran" className="rounded-full bg-rose-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700">
                         Buat Akun
                       </Link>
                       <Link href="/login?next=/pendaftaran" className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600">

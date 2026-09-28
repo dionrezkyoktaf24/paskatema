@@ -7,20 +7,24 @@ import { Clock, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/api-error";
 import { authInputClass } from "@/components/auth/AuthCard";
+import { MEMBER_STATUS_LABEL, type MemberStatus } from "@/services/member";
 
 /**
- * Untuk akun yang angkatannya belum diisi: tampilkan klaim purna yang sedang
- * menunggu, atau form untuk mengajukan diri sebagai purna.
+ * Untuk akun yang angkatannya belum diisi: tampilkan pengajuan yang sedang
+ * menunggu, atau form untuk mengajukan diri sebagai anggota aktif / purna.
  */
-export function PurnaClaimCard({
+export function MembershipClaimCard({
+  claimStatus,
   claimAngkatan,
   claimAt,
 }: {
+  claimStatus: MemberStatus | null;
   claimAngkatan: number | null;
   claimAt: string | null;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<MemberStatus>("AKTIF");
   const [angkatan, setAngkatan] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
   const [note, setNote] = useState("");
@@ -29,9 +33,10 @@ export function PurnaClaimCard({
   const submit = useMutation({
     mutationFn: async () =>
       (
-        await apiClient.post("/user/me/purna-claim", {
+        await apiClient.post("/user/me/membership-claim", {
+          status,
           angkatan: Number(angkatan),
-          graduationYear: graduationYear ? Number(graduationYear) : undefined,
+          graduationYear: status === "PURNA" && graduationYear ? Number(graduationYear) : undefined,
           note: note.trim() || undefined,
         })
       ).data,
@@ -44,8 +49,9 @@ export function PurnaClaimCard({
       <div className="flex items-start gap-3 rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
         <Clock size={18} className="mt-0.5 shrink-0" />
         <p>
-          Pengajuan sebagai <b>purna Angkatan {claimAngkatan}</b> sedang menunggu verifikasi admin. Setelah disetujui,
-          Anda bisa masuk direktori, forum, dan galeri angkatan.
+          Pengajuan sebagai <b>{MEMBER_STATUS_LABEL[claimStatus ?? "AKTIF"].toLowerCase()} Angkatan {claimAngkatan}</b>{" "}
+          sedang menunggu verifikasi admin. Setelah disetujui, Anda bisa memakai forum, galeri angkatan, direktori, dan
+          pemilihan.
         </p>
       </div>
     );
@@ -56,14 +62,14 @@ export function PurnaClaimCard({
       {!open ? (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <p className="text-slate-600">
-            <b className="text-slate-900">Purna (alumni) Paskatema?</b> Ajukan verifikasi supaya tercatat di jaringan purna.
+            <b className="text-slate-900">Sudah menjadi anggota Paskatema?</b> Ajukan verifikasi angkatan Anda.
           </p>
           <button
             type="button"
             onClick={() => setOpen(true)}
             className="rounded-2xl border border-rose-200 px-4 py-2 font-semibold text-rose-600 transition hover:bg-rose-50"
           >
-            Ajukan sebagai purna
+            Ajukan verifikasi
           </button>
         </div>
       ) : (
@@ -75,8 +81,24 @@ export function PurnaClaimCard({
           }}
           className="space-y-4"
         >
-          <h2 className="text-lg font-semibold text-slate-950">Ajukan sebagai purna</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="text-lg font-semibold text-slate-950">Ajukan verifikasi keanggotaan</h2>
+          <div className="grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 text-sm font-semibold" role="radiogroup" aria-label="Status">
+            {(["AKTIF", "PURNA"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={status === value}
+                onClick={() => setStatus(value)}
+                className={`rounded-xl px-3 py-2 transition ${
+                  status === value ? "bg-white text-rose-600 shadow-sm" : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {value === "AKTIF" ? "Anggota aktif" : "Purna (alumni)"}
+              </button>
+            ))}
+          </div>
+          <div className={`grid gap-3 ${status === "PURNA" ? "grid-cols-2" : "grid-cols-1"}`}>
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-slate-700">Angkatan</span>
               <input
@@ -86,24 +108,26 @@ export function PurnaClaimCard({
                 max={999}
                 value={angkatan}
                 onChange={(e) => setAngkatan(e.target.value)}
-                placeholder="mis. 25"
+                placeholder={status === "PURNA" ? "mis. 25" : "mis. 32"}
                 className={authInputClass}
               />
             </label>
-            <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-slate-700">
-                Tahun lulus <span className="text-slate-400">(opsional)</span>
-              </span>
-              <input
-                type="number"
-                min={1980}
-                max={2100}
-                value={graduationYear}
-                onChange={(e) => setGraduationYear(e.target.value)}
-                placeholder="mis. 2021"
-                className={authInputClass}
-              />
-            </label>
+            {status === "PURNA" && (
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-slate-700">
+                  Tahun lulus <span className="text-slate-400">(opsional)</span>
+                </span>
+                <input
+                  type="number"
+                  min={1980}
+                  max={2100}
+                  value={graduationYear}
+                  onChange={(e) => setGraduationYear(e.target.value)}
+                  placeholder="mis. 2021"
+                  className={authInputClass}
+                />
+              </label>
+            )}
           </div>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-slate-700">
@@ -113,7 +137,7 @@ export function PurnaClaimCard({
               maxLength={300}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="mis. jabatan dulu, nama panggilan"
+              placeholder={status === "PURNA" ? "mis. jabatan dulu, nama panggilan" : "mis. kelas XI RPL 2, jabatan"}
               className={authInputClass}
             />
           </label>
