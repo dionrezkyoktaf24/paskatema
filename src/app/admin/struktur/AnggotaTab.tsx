@@ -7,6 +7,7 @@ import { Pencil, Loader2, Search } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Modal } from "@/components/admin/Modal";
+import { ActiveAngkatanCard } from "./ActiveAngkatanCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_LABEL, type UserRole } from "@/lib/roles";
 import { apiErrorMessage } from "@/lib/api-error";
@@ -110,6 +111,8 @@ export function AnggotaTab() {
 
   return (
     <div className="space-y-4">
+      <ActiveAngkatanCard />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full max-w-sm">
           <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />

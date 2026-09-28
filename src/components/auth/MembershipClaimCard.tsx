@@ -8,6 +8,7 @@ import { apiClient } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/api-error";
 import { authInputClass } from "@/components/auth/AuthCard";
 import { MEMBER_STATUS_LABEL, type MemberStatus } from "@/services/member";
+import { AngkatanField } from "@/components/auth/AngkatanField";
 
 /**
  * Untuk akun yang angkatannya belum diisi: tampilkan pengajuan yang sedang
@@ -99,19 +100,12 @@ export function MembershipClaimCard({
             ))}
           </div>
           <div className={`grid gap-3 ${status === "PURNA" ? "grid-cols-2" : "grid-cols-1"}`}>
-            <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-slate-700">Angkatan</span>
-              <input
-                type="number"
-                required
-                min={1}
-                max={999}
-                value={angkatan}
-                onChange={(e) => setAngkatan(e.target.value)}
-                placeholder={status === "PURNA" ? "mis. 25" : "mis. 32"}
-                className={authInputClass}
-              />
-            </label>
+            <AngkatanField
+              status={status}
+              value={angkatan}
+              onChange={setAngkatan}
+              className={authInputClass}
+            />
             {status === "PURNA" && (
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium text-slate-700">

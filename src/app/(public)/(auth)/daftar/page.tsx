@@ -9,6 +9,7 @@ import { nextPathFromUrl } from "@/lib/roles";
 import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
 import { AlreadySignedIn } from "@/components/auth/AlreadySignedIn";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { AngkatanField } from "@/components/auth/AngkatanField";
 
 type RegisterKind = "calon" | "aktif" | "purna";
 
@@ -173,19 +174,12 @@ export default function DaftarPage() {
           {isMember && (
             <div className="space-y-4 rounded-2xl border border-rose-100 bg-rose-50/60 p-4">
               <div className={`grid gap-3 ${kind === "purna" ? "grid-cols-2" : "grid-cols-1"}`}>
-                <label className="block space-y-1.5">
-                  <span className="text-sm font-medium text-slate-700">Angkatan</span>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={999}
-                    value={claimAngkatan}
-                    onChange={(e) => setClaimAngkatan(e.target.value)}
-                    placeholder={kind === "purna" ? "mis. 25" : "mis. 32"}
-                    className={authInputClass}
-                  />
-                </label>
+                <AngkatanField
+                  status={kind === "purna" ? "PURNA" : "AKTIF"}
+                  value={claimAngkatan}
+                  onChange={setClaimAngkatan}
+                  className={authInputClass}
+                />
                 {kind === "purna" && (
                   <label className="block space-y-1.5">
                     <span className="text-sm font-medium text-slate-700">
