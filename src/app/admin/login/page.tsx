@@ -7,10 +7,12 @@ import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { homeForRole } from "@/lib/roles";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { AlreadySignedIn } from "@/components/auth/AlreadySignedIn";
 
 export default function AdminLoginPage() {
-  const { login } = useAuth();
+  const { user, isLoading, login } = useAuth();
   const router = useRouter();
+  const [justSignedIn, setJustSignedIn] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,9 +25,11 @@ export default function AdminLoginPage() {
     setIsSubmitting(true);
 
     try {
+      setJustSignedIn(true);
       const loggedIn = await login(email, password);
       router.push(homeForRole(loggedIn.role));
     } catch (err) {
+      setJustSignedIn(false);
       setError(err instanceof Error ? err.message : "Gagal login.");
     } finally {
       setIsSubmitting(false);
@@ -47,49 +51,55 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-300">Email</span>
-            <input
-              id="admin-email"
-              type="email"
-              required
-              autoComplete="username"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="admin@paskatema.com"
-              className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30"
-            />
-          </label>
+        {!isLoading && user && !justSignedIn ? (
+          <div className="mt-8">
+            <AlreadySignedIn tone="dark" />
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-slate-300">Email</span>
+              <input
+                id="admin-email"
+                type="email"
+                required
+                autoComplete="username"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="admin@paskatema.com"
+                className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30"
+              />
+            </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-300">Password</span>
-            <PasswordInput
-              tone="dark"
-              id="admin-password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30"
-            />
-          </label>
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-slate-300">Password</span>
+              <PasswordInput
+                tone="dark"
+                id="admin-password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30"
+              />
+            </label>
 
-          {error && (
-            <p className="rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
-              {error}
-            </p>
-          )}
+            {error && (
+              <p className="rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
+                {error}
+              </p>
+            )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting ? "Memproses..." : "Masuk"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? "Memproses..." : "Masuk"}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

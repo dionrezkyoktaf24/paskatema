@@ -26,7 +26,8 @@ export default function AdminLayout({
       router.replace("/admin/login");
       return;
     }
-    if (user && canPanel && (isLoginPage || !canOpenPanelPath(user.role, pathname))) {
+    // Halaman login tidak dialihkan: ia menampilkan pilihan lanjut / ganti akun.
+    if (user && canPanel && !isLoginPage && !canOpenPanelPath(user.role, pathname)) {
       // Mis. bendahara membuka /admin → arahkan ke laporan keuangan.
       router.replace(homeForRole(user.role));
     }
