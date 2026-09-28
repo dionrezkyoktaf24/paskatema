@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { Modal } from "@/components/admin/Modal";
+import { apiErrorMessage } from "@/lib/api-error";
 
 interface PositionItem {
   id: string;
@@ -28,6 +29,7 @@ export function JabatanTab() {
   const [name, setName] = useState("");
   const [level, setLevel] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
 
   function openCreate() {
     setName("");
@@ -59,8 +61,13 @@ export function JabatanTab() {
   }
 
   async function handleDelete(item: PositionItem) {
+    setListError(null);
     if (!window.confirm(`Hapus jabatan "${item.name}"?`)) return;
-    await remove.mutateAsync(item.id);
+    try {
+      await remove.mutateAsync(item.id);
+    } catch (err) {
+      setListError(apiErrorMessage(err, "Gagal menghapus jabatan."));
+    }
   }
 
   const isSaving = create.isPending || update.isPending;
@@ -79,6 +86,12 @@ export function JabatanTab() {
           Tambah Jabatan
         </button>
       </div>
+
+      {listError && (
+        <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+          {listError}
+        </p>
+      )}
 
       <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
         <table className="min-w-full text-left text-sm">

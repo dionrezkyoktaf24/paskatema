@@ -5,11 +5,13 @@ import { Plus, Pencil, Trash2, Loader2, CheckCircle2 } from "lucide-react";
 
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { Modal } from "@/components/admin/Modal";
+import { apiErrorMessage } from "@/lib/api-error";
 
 interface PeriodItem {
   id: string;
   name: string;
   isActive: boolean;
+  _count?: { structures: number; votingPeriods: number };
 }
 
 interface PeriodFormValues {
@@ -28,6 +30,7 @@ export function PeriodeTab() {
   const [name, setName] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
 
   function openCreate() {
     setName("");
@@ -53,14 +56,27 @@ export function PeriodeTab() {
         await update.mutateAsync({ id: editing.id, data: { name, isActive } });
       }
       setEditing(null);
-    } catch {
-      setFormError("Gagal menyimpan periode.");
+    } catch (err) {
+      setFormError(apiErrorMessage(err, "Gagal menyimpan periode."));
     }
   }
 
   async function handleDelete(item: PeriodItem) {
-    if (!window.confirm(`Hapus periode "${item.name}"?`)) return;
-    await remove.mutateAsync(item.id);
+    setListError(null);
+    const placements = item._count?.structures ?? 0;
+    const warning = [
+      `Hapus periode kepengurusan "${item.name}"?`,
+      placements > 0 && `${placements} penempatan pengurus di periode ini ikut terhapus.`,
+      item.isActive && "Ini periode AKTIF: bagan struktur dan akses bendahara akan kosong sampai ada periode aktif lain.",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    if (!window.confirm(warning)) return;
+    try {
+      await remove.mutateAsync(item.id);
+    } catch (err) {
+      setListError(apiErrorMessage(err, "Gagal menghapus periode."));
+    }
   }
 
   const isSaving = create.isPending || update.isPending;
@@ -80,6 +96,12 @@ export function PeriodeTab() {
           Tambah Periode Kepengurusan
         </button>
       </div>
+
+      {listError && (
+        <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+          {listError}
+        </p>
+      )}
 
       <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
         <table className="min-w-full text-left text-sm">
