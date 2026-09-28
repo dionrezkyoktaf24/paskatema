@@ -293,9 +293,17 @@ export function AnggotaTab() {
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 disabled:bg-slate-50 disabled:text-slate-400"
               >
                 <option value="USER">Anggota</option>
-                <option value="BENDAHARA">Bendahara — mencatat laporan keuangan</option>
+                {editing.role === "BENDAHARA" && (
+                  <option value="BENDAHARA" disabled>
+                    Bendahara (otomatis dari jabatan)
+                  </option>
+                )}
                 <option value="ADMIN">Admin — kelola seluruh panel</option>
               </select>
+              <span className="block text-xs text-slate-400">
+                Role Bendahara diberikan otomatis kepada anggota yang menjabat Bendahara di tab Struktur
+                (periode aktif), dan dicabut saat jabatannya diganti.
+              </span>
               {editing.id === currentUser?.id && (
                 <span className="text-xs text-slate-400">Role akun sendiri tidak bisa diubah.</span>
               )}
