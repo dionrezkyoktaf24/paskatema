@@ -6,6 +6,7 @@ import { ShieldCheck } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { homeForRole } from "@/lib/roles";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function AdminLoginPage() {
   const { login } = useAuth();
@@ -63,9 +64,9 @@ export default function AdminLoginPage() {
 
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-300">Password</span>
-            <input
+            <PasswordInput
+              tone="dark"
               id="admin-password"
-              type="password"
               required
               autoComplete="current-password"
               value={password}

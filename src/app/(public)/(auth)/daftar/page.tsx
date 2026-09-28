@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { homeForRole, nextPathFromUrl } from "@/lib/roles";
 import { AuthCard, authInputClass } from "@/components/auth/AuthCard";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function DaftarPage() {
   const { user, isLoading, register } = useAuth();
@@ -138,8 +139,7 @@ export default function DaftarPage() {
         </label>
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-slate-700">Password</span>
-          <input
-            type="password"
+          <PasswordInput
             required
             minLength={8}
             autoComplete="new-password"
