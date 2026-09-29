@@ -205,7 +205,7 @@ export default function DaftarPage() {
                   maxLength={300}
                   value={claimNote}
                   onChange={(e) => setClaimNote(e.target.value)}
-                  placeholder={kind === "purna" ? "mis. jabatan dulu, nama panggilan" : "mis. kelas XI RPL 2, jabatan"}
+                  placeholder={kind === "purna" ? "mis. jabatan dulu, nama panggilan" : "mis. jabatan saat ini, nama panggilan"}
                   className={authInputClass}
                 />
               </label>

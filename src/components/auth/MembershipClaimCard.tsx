@@ -131,7 +131,7 @@ export function MembershipClaimCard({
               maxLength={300}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder={status === "PURNA" ? "mis. jabatan dulu, nama panggilan" : "mis. kelas XI RPL 2, jabatan"}
+              placeholder={status === "PURNA" ? "mis. jabatan dulu, nama panggilan" : "mis. jabatan saat ini, nama panggilan"}
               className={authInputClass}
             />
           </label>
