@@ -25,7 +25,8 @@ interface DraftField {
 const DEFAULT_FIELDS: Omit<FormField, "key">[] = [
   { label: "Nama Lengkap", type: "text", required: true },
   { label: "Nomor Induk Siswa (NIS)", type: "text", required: true },
-  { label: "Kelas", type: "select", required: true, options: ["X RPL 1", "X RPL 2", "X TKJ 1", "X TKJ 2"] },
+  // Isian teks (bukan dropdown) supaya semua kelas bisa ditulis.
+  { label: "Kelas", type: "text", required: true },
   { label: "No. WhatsApp", type: "tel", required: true },
   { label: "Alasan Bergabung PASKATEMA", type: "textarea", required: true },
 ];
@@ -219,11 +220,14 @@ function FormEditor({
   const [fields, setFields] = useState<DraftField[]>(() =>
     (form ? form.schema : DEFAULT_FIELDS).map((f) => toDraft(f)),
   );
+  // Form terkunci tetap boleh menjadikan dropdown sebagai isian teks
+  // (jawaban lama tetap valid; backend mengizinkan perubahan ini).
+  const [convertedToText, setConvertedToText] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
     mutationFn: async () => {
-      const body = locked ? { title } : { title, schema: toSchema(fields) };
+      const body = locked && !convertedToText ? { title } : { title, schema: toSchema(fields) };
       return form
         ? (await apiClient.patch(`/form-setting/${form.id}`, body)).data
         : (await apiClient.post("/form-setting", body)).data;
@@ -272,7 +276,7 @@ function FormEditor({
 
         {locked && (
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Formulir ini sudah punya pendaftar, jadi pertanyaannya tidak bisa diubah. Buat formulir baru untuk pertanyaan yang berbeda.
+            Formulir ini sudah punya pendaftar, jadi pertanyaannya tidak bisa diubah, kecuali pilihan (dropdown) yang dijadikan isian teks. Buat formulir baru untuk pertanyaan yang berbeda.
           </p>
         )}
 
@@ -332,6 +336,18 @@ function FormEditor({
                   Wajib diisi
                 </label>
               </div>
+              {locked && field.type === "select" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    patch(field.uid, { type: "text", optionsText: "" });
+                    setConvertedToText(true);
+                  }}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
+                >
+                  Jadikan isian teks
+                </button>
+              )}
               {field.type === "select" && (
                 <textarea
                   required
