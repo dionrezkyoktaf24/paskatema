@@ -25,8 +25,6 @@ interface DraftField {
 const DEFAULT_FIELDS: Omit<FormField, "key">[] = [
   { label: "Nama Lengkap", type: "text", required: true },
   { label: "Nomor Induk Siswa (NIS)", type: "text", required: true },
-  // Isian teks (bukan dropdown) supaya semua kelas bisa ditulis.
-  { label: "Kelas", type: "text", required: true },
   { label: "No. WhatsApp", type: "tel", required: true },
   { label: "Alasan Bergabung PASKATEMA", type: "textarea", required: true },
 ];
@@ -220,14 +218,15 @@ function FormEditor({
   const [fields, setFields] = useState<DraftField[]>(() =>
     (form ? form.schema : DEFAULT_FIELDS).map((f) => toDraft(f)),
   );
-  // Form terkunci tetap boleh menjadikan dropdown sebagai isian teks
-  // (jawaban lama tetap valid; backend mengizinkan perubahan ini).
-  const [convertedToText, setConvertedToText] = useState(false);
+  // Form terkunci tetap boleh: hapus pertanyaan, jadikan opsional, atau
+  // jadikan dropdown isian teks (jawaban lama tetap valid; lihat backend
+  // isCompatibleSchemaChange).
+  const [lockedEdited, setLockedEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
     mutationFn: async () => {
-      const body = locked && !convertedToText ? { title } : { title, schema: toSchema(fields) };
+      const body = locked && !lockedEdited ? { title } : { title, schema: toSchema(fields) };
       return form
         ? (await apiClient.patch(`/form-setting/${form.id}`, body)).data
         : (await apiClient.post("/form-setting", body)).data;
@@ -276,7 +275,7 @@ function FormEditor({
 
         {locked && (
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Formulir ini sudah punya pendaftar, jadi pertanyaannya tidak bisa diubah, kecuali pilihan (dropdown) yang dijadikan isian teks. Buat formulir baru untuk pertanyaan yang berbeda.
+            Formulir ini sudah punya pendaftar. Pertanyaan masih bisa dihapus (✕), dijadikan opsional, atau dropdown dijadikan isian teks; jawaban yang sudah masuk tetap tersimpan. Untuk menambah atau mengubah pertanyaan, buat formulir baru.
           </p>
         )}
 
@@ -293,7 +292,19 @@ function FormEditor({
                   placeholder="Pertanyaan"
                   className={inputClass}
                 />
-                {!locked && (
+                {locked ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFields((prev) => prev.filter((f) => f.uid !== field.uid));
+                      setLockedEdited(true);
+                    }}
+                    className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                    aria-label="Hapus pertanyaan"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : (
                   <div className="flex shrink-0 items-center">
                     <button type="button" onClick={() => move(index, -1)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Naikkan">
                       <ArrowUp size={14} />
@@ -328,9 +339,13 @@ function FormEditor({
                 <label className="flex items-center gap-2 text-sm text-slate-600">
                   <input
                     type="checkbox"
-                    disabled={locked}
+                    // Form terkunci: hanya boleh dijadikan opsional.
+                    disabled={locked && !field.required}
                     checked={field.required}
-                    onChange={(e) => patch(field.uid, { required: e.target.checked })}
+                    onChange={(e) => {
+                      patch(field.uid, { required: e.target.checked });
+                      if (locked) setLockedEdited(true);
+                    }}
                     className="h-4 w-4 accent-rose-600"
                   />
                   Wajib diisi
@@ -341,7 +356,7 @@ function FormEditor({
                   type="button"
                   onClick={() => {
                     patch(field.uid, { type: "text", optionsText: "" });
-                    setConvertedToText(true);
+                    setLockedEdited(true);
                   }}
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"
                 >

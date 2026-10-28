@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Footer } from "@/components/footer/Footer";
 import { apiErrorMessage } from "@/lib/api-error";
+import { useActiveAngkatan } from "@/services/settings";
 import {
   STATUS_CLASS,
   STATUS_LABEL,
@@ -57,6 +58,17 @@ export default function PendaftaranPage() {
     queryKey: ["form-active"],
     queryFn: async () => (await apiClient.get<FormSetting>("/form-setting/active")).data,
     retry: false,
+  });
+
+  const { data: activeAngkatan } = useActiveAngkatan();
+  // Profil: untuk tahu apakah akun ini sudah anggota (punya angkatan) atau
+  // sedang mengajukan — keduanya tidak perlu formulir rekrutmen.
+  const me = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: async () =>
+      (await apiClient.get<{ angkatan: number | null; claimAt: string | null; claimAngkatan: number | null }>("/user/me"))
+        .data,
+    enabled: !!user,
   });
 
   const mine = useQuery({
@@ -163,6 +175,23 @@ export default function PendaftaranPage() {
                   </div>
                 </div>
 
+                <div className="mt-8 flex flex-col gap-3 rounded-[24px] border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+                  <p>
+                    <b>Formulir ini khusus calon anggota baru.</b>{" "}
+                    {activeAngkatan && activeAngkatan.length > 0
+                      ? `Anggota Angkatan ${activeAngkatan.join(", ")} dan purna tidak perlu mengisinya.`
+                      : "Anggota aktif dan purna tidak perlu mengisinya."}
+                  </p>
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <Link href="/daftar?as=aktif" className="rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-700">
+                      Saya anggota aktif
+                    </Link>
+                    <Link href="/daftar?as=purna" className="rounded-full border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
+                      Saya purna
+                    </Link>
+                  </div>
+                </div>
+
                 {authLoading ? null : !user ? (
                   <div className="mt-10 rounded-[28px] border border-rose-200 bg-rose-50 p-8 text-center">
                     <p className="text-base font-semibold text-slate-950">Masuk atau buat akun untuk mendaftar</p>
@@ -175,6 +204,18 @@ export default function PendaftaranPage() {
                         Masuk
                       </Link>
                     </div>
+                  </div>
+                ) : !existing && !submit.isSuccess && me.data && (me.data.angkatan !== null || me.data.claimAt) ? (
+                  <div className="mt-10 rounded-[28px] border border-slate-200 bg-slate-50 p-8 text-center">
+                    <p className="text-base font-semibold text-slate-950">
+                      {me.data.angkatan !== null
+                        ? `Anda sudah tercatat sebagai anggota Angkatan ${me.data.angkatan}`
+                        : `Pengajuan Anda sebagai anggota Angkatan ${me.data.claimAngkatan} sedang diverifikasi`}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">Formulir ini khusus calon anggota baru, jadi Anda tidak perlu mengisinya.</p>
+                    <Link href="/akun" className="mt-5 inline-block rounded-full bg-rose-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700">
+                      Ke Akun Saya
+                    </Link>
                   </div>
                 ) : existing || submit.isSuccess ? (
                   <div className="mt-10 rounded-[28px] border border-emerald-200 bg-emerald-50 p-8 text-center">
