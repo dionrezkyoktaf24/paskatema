@@ -1,7 +1,15 @@
 export type PaymentStatus = "PENDING" | "PAID" | "CANCELLED";
+export type PaymentKind = "PEMBAYARAN" | "DONASI" | "MERCHANDISE";
+
+export const PAYMENT_KIND_LABEL: Record<PaymentKind, string> = {
+  PEMBAYARAN: "Pembayaran",
+  DONASI: "Donasi",
+  MERCHANDISE: "Merchandise",
+};
 
 export interface PaymentRequest {
   id: string;
+  kind: PaymentKind;
   baseAmount: number;
   uniqueCode: number;
   totalAmount: number;

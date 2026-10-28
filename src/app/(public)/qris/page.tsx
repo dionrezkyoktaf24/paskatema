@@ -107,18 +107,21 @@ function QrisForm({ qris, onPaymentCreated }: { qris: QrisSetting; onPaymentCrea
   const [description, setDescription] = useState("");
   const [contact, setContact] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Donasi tanpa nominal/kode (QR statis): tidak tercatat otomatis.
+  const [showStatic, setShowStatic] = useState(false);
 
   const amount = Number(amountText.replace(/\D/g, ""));
   const validAmount = Number.isInteger(amount) && amount >= 1_000 && amount <= 10_000_000;
-  const donationPayload = useMemo(() => dynamicPayload(qris, validAmount ? amount : null), [qris, validAmount, amount]);
+  const staticPayload = useMemo(() => dynamicPayload(qris, null), [qris]);
 
   const create = useMutation({
     mutationFn: async () =>
       (
         await apiClient.post<PaymentRequest>("/payments", {
+          kind: purpose === "donasi" ? "DONASI" : "PEMBAYARAN",
           amount,
-          description: description.trim(),
-          payerName: payerName.trim(),
+          description: description.trim() || undefined,
+          payerName: payerName.trim() || undefined,
           payerContact: contact.trim() || undefined,
         })
       ).data,
@@ -161,6 +164,29 @@ function QrisForm({ qris, onPaymentCreated }: { qris: QrisSetting; onPaymentCrea
             </button>
           ))}
         </div>
+
+        {purpose === "donasi" && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">
+                Nama donatur <span className="text-slate-400">(opsional)</span>
+              </span>
+              <input maxLength={100} value={payerName} onChange={(e) => setPayerName(e.target.value)} placeholder="Kosong = Anonim" className={inputClass} />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-slate-700">
+                Pesan / untuk <span className="text-slate-400">(opsional)</span>
+              </span>
+              <input
+                maxLength={150}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="mis. Untuk LKBB Antareja"
+                className={inputClass}
+              />
+            </label>
+          </div>
+        )}
 
         {purpose === "pembayaran" && (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -217,40 +243,44 @@ function QrisForm({ qris, onPaymentCreated }: { qris: QrisSetting; onPaymentCrea
 
         <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
           <Info size={18} className="mt-0.5 shrink-0 text-slate-400" />
-          {purpose === "pembayaran" ? (
+          <div className="space-y-1">
             <p>
               Sistem menambahkan <b>kode unik</b> (Rp 1–999) ke nominal, mis. Rp 50.000 menjadi Rp 50.123, supaya bendahara bisa
-              mengenali pembayaran Anda. Bayar <b>tepat</b> sesuai total yang muncul.
+              mengenali {purpose === "donasi" ? "donasi" : "pembayaran"} Anda dan mencatatnya. Bayar <b>tepat</b> sesuai total yang muncul.
             </p>
-          ) : (
-            <div className="space-y-1">
-              <p>Isi nominal, lalu pindai QR. Nominal sudah terisi otomatis. Pastikan penerima <b>{qris.merchantName.trim()}</b>.</p>
-              {qris.note && <p className="text-slate-500">{qris.note}</p>}
-            </div>
-          )}
+            {qris.note && <p className="text-slate-500">{qris.note}</p>}
+          </div>
         </div>
 
         {error && <p className="text-sm text-rose-600">{error}</p>}
 
-        {purpose === "pembayaran" && (
+        <button
+          type="submit"
+          disabled={create.isPending}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 disabled:opacity-60"
+        >
+          {create.isPending && <Loader2 size={16} className="animate-spin" />}
+          {purpose === "donasi" ? "Buat QR donasi" : "Buat kode pembayaran"}
+        </button>
+
+        {purpose === "donasi" && (
           <button
-            type="submit"
-            disabled={create.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 disabled:opacity-60"
+            type="button"
+            onClick={() => setShowStatic((v) => !v)}
+            className="block text-xs font-semibold text-slate-500 underline-offset-2 hover:text-rose-600 hover:underline"
           >
-            {create.isPending && <Loader2 size={16} className="animate-spin" />}
-            Buat kode pembayaran
+            {showStatic ? "Sembunyikan QR tanpa nominal" : "Atau pakai QR tanpa nominal (isi sendiri di aplikasi, dicatat manual oleh bendahara)"}
           </button>
         )}
       </form>
 
-      {purpose === "donasi" && (
+      {purpose === "donasi" && showStatic && (
         <QrisCard
           qris={qris}
-          payload={donationPayload}
-          title={validAmount ? rupiah(amount) : "Nominal bebas"}
-          subtitle={validAmount ? "Donasi" : "Isi nominal di aplikasi saat membayar"}
-          fileName={validAmount ? `qris-donasi-${amount}.png` : "qris-paskatema.png"}
+          payload={staticPayload}
+          title="Nominal bebas"
+          subtitle="Tidak tercatat otomatis"
+          fileName="qris-paskatema.png"
         />
       )}
     </div>
@@ -325,7 +355,7 @@ function PaymentView({ id, qris, onNew }: { id: string; qris: QrisSetting; onNew
             <dd className="font-medium text-slate-800">{data.description}</dd>
           </div>
           <div>
-            <dt className="text-slate-400">Nama pembayar</dt>
+            <dt className="text-slate-400">{data.kind === "DONASI" ? "Nama donatur" : "Nama pembayar"}</dt>
             <dd className="font-medium text-slate-800">{data.payerName}</dd>
           </div>
           <div>
@@ -339,7 +369,7 @@ function PaymentView({ id, qris, onNew }: { id: string; qris: QrisSetting; onNew
         {status === "PAID" ? (
           <p className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
             <CheckCircle2 size={18} />
-            Pembayaran sudah dikonfirmasi bendahara. Terima kasih!
+            {data.kind === "DONASI" ? "Donasi sudah diterima bendahara." : "Pembayaran sudah dikonfirmasi bendahara."} Terima kasih!
           </p>
         ) : status === "PENDING" ? (
           <p className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">

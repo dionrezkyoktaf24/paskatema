@@ -6,7 +6,13 @@ import { Check, Loader2, X } from "lucide-react";
 
 import { apiClient } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/api-error";
-import { PAYMENT_STATUS_LABEL, rupiah, type AdminPaymentRequest, type PaymentStatus } from "@/services/payment";
+import {
+  PAYMENT_KIND_LABEL,
+  PAYMENT_STATUS_LABEL,
+  rupiah,
+  type AdminPaymentRequest,
+  type PaymentStatus,
+} from "@/services/payment";
 
 /**
  * Pembayaran QRIS berkode unik. Bendahara mencocokkan total (dengan kode
@@ -45,7 +51,7 @@ export function PaymentsCard({ canConfirm }: { canConfirm: boolean }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-semibold text-slate-900">
-            Pembayaran QRIS (kode unik){pendingCount ? <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">{pendingCount} menunggu</span> : null}
+            Pembayaran &amp; donasi QRIS (kode unik){pendingCount ? <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">{pendingCount} menunggu</span> : null}
           </p>
           <p className="text-xs text-slate-500">
             Cocokkan <b>total persis</b> di aplikasi merchant QRIS, lalu konfirmasi. Yang dikonfirmasi otomatis tercatat sebagai pemasukan.
@@ -86,7 +92,20 @@ export function PaymentsCard({ canConfirm }: { canConfirm: boolean }) {
                     <span className="font-semibold text-slate-900">{rupiah(p.totalAmount)}</span>
                     <span className="block text-xs text-slate-400">kode {p.uniqueCode}</span>
                   </td>
-                  <td className="max-w-[14rem] py-3 pr-4 text-slate-700">{p.description}</td>
+                  <td className="max-w-[14rem] py-3 pr-4 text-slate-700">
+                    <span
+                      className={`mr-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        p.kind === "DONASI"
+                          ? "bg-rose-50 text-rose-700"
+                          : p.kind === "MERCHANDISE"
+                            ? "bg-violet-50 text-violet-700"
+                            : "bg-sky-50 text-sky-700"
+                      }`}
+                    >
+                      {PAYMENT_KIND_LABEL[p.kind]}
+                    </span>
+                    {p.description}
+                  </td>
                   <td className="py-3 pr-4 text-slate-700">
                     {p.payerName}
                     {(p.payerContact || p.payer?.angkatan) && (
