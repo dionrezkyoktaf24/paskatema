@@ -12,6 +12,7 @@ export const navLinks = [
 export const moreNavLinks = [
   { label: "Prestasi", href: "/prestasi" },
   { label: "Pemilihan", href: "/voting" },
+  { label: "Merchandise", href: "/merchandise" },
   { label: "Donasi & Pembayaran", href: "/qris" },
   { label: "Jaringan Paskatema", href: "/jaringan" },
   { label: "Forum Anggota", href: "/forum" },

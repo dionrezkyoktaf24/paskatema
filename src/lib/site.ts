@@ -13,6 +13,7 @@ export const PUBLIC_ROUTES = [
   "/event",
   "/prestasi",
   "/qris",
+  "/merchandise",
   "/anggota",
   "/galeri",
   "/administrasi",

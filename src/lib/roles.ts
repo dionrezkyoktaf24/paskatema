@@ -13,7 +13,7 @@ export const ROLE_LABEL: Record<UserRole, string> = {
  */
 const PANEL_PATHS: Partial<Record<UserRole, string[] | null>> = {
   ADMIN: null,
-  BENDAHARA: ["/admin/keuangan"],
+  BENDAHARA: ["/admin/keuangan", "/admin/merchandise"],
 };
 
 export function canUsePanel(role: UserRole | undefined): boolean {

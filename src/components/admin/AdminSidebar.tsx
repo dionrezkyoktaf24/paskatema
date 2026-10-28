@@ -14,6 +14,7 @@ import {
   Vote,
   LogOut,
   Images,
+  ShoppingBag,
 } from "lucide-react";
 
 import type { AuthUser } from "@/lib/auth-storage";
@@ -44,7 +45,10 @@ const navGroups = [
   },
   {
     title: "Keuangan",
-    items: [{ href: "/admin/keuangan", label: "Laporan Keuangan", icon: Wallet }],
+    items: [
+      { href: "/admin/keuangan", label: "Laporan Keuangan", icon: Wallet },
+      { href: "/admin/merchandise", label: "Merchandise", icon: ShoppingBag },
+    ],
   },
 ];
 

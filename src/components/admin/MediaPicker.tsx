@@ -13,12 +13,15 @@ export function MediaPicker({
   value,
   onChange,
   accept,
+  allowGallery = true,
 }: {
   label: string;
   value: MediaItem | null;
   onChange: (media: MediaItem | null) => void;
   /** Atribut accept input file, mis. "image/*" untuk foto saja. */
   accept?: string;
+  /** false untuk role tanpa akses galeri media (mis. bendahara). */
+  allowGallery?: boolean;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,14 +82,16 @@ export function MediaPicker({
                 disabled={isUploading}
               />
             </label>
-            <button
-              type="button"
-              onClick={() => setIsGalleryOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
-            >
-              <Images size={14} />
-              Pilih dari Galeri
-            </button>
+            {allowGallery && (
+              <button
+                type="button"
+                onClick={() => setIsGalleryOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                <Images size={14} />
+                Pilih dari Galeri
+              </button>
+            )}
           </div>
           {value && (
             <button
