@@ -25,4 +25,5 @@ export interface MemberProfile {
   skills?: string[];
   linkedinUrl?: string | null;
   instagram?: string | null;
+  openToMentor?: boolean;
 }

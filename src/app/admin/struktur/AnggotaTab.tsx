@@ -2,12 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Loader2, Search } from "lucide-react";
+import { Download, Pencil, Loader2, Search } from "lucide-react";
 
 import { apiClient } from "@/lib/api";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Modal } from "@/components/admin/Modal";
 import { ActiveAngkatanCard } from "./ActiveAngkatanCard";
+import { exportMembersCsv } from "./exportMembers";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_LABEL, type UserRole } from "@/lib/roles";
 import { apiErrorMessage } from "@/lib/api-error";
@@ -77,6 +78,22 @@ export function AnggotaTab() {
   const [role, setRole] = useState<UserRole>("USER");
   const [memberStatus, setMemberStatus] = useState<MemberStatus>("AKTIF");
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      await exportMembersCsv({
+        search: debouncedSearch || undefined,
+        memberStatus: statusFilter || undefined,
+        angkatan: debouncedAngkatan ? Number(debouncedAngkatan) : undefined,
+      });
+    } catch {
+      window.alert("Gagal mengunduh data anggota.");
+    } finally {
+      setExporting(false);
+    }
+  }
   const [formError, setFormError] = useState<string | null>(null);
 
   function openEdit(item: MemberItem) {
@@ -158,6 +175,14 @@ export function AnggotaTab() {
             </span>
           )}
         </div>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600 disabled:opacity-60"
+        >
+          {exporting ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+          Unduh CSV
+        </button>
         <button
           onClick={() => setBulkOpen(true)}
           className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600"

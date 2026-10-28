@@ -59,6 +59,9 @@ export function AuthMenu() {
           <Link href="/akun" className={itemClass} onClick={() => setOpen(false)}>
             Akun Saya
           </Link>
+          <Link href="/jaringan" className={itemClass} onClick={() => setOpen(false)}>
+            Jaringan Paskatema
+          </Link>
           <Link href="/forum" className={itemClass} onClick={() => setOpen(false)}>
             Forum
           </Link>
@@ -108,6 +111,9 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate: () => void }) {
     <>
       <Link href="/akun" className={linkClass} onClick={onNavigate}>
         Akun Saya
+      </Link>
+      <Link href="/jaringan" className={linkClass} onClick={onNavigate}>
+        Jaringan Paskatema
       </Link>
       <Link href="/forum" className={linkClass} onClick={onNavigate}>
         Forum

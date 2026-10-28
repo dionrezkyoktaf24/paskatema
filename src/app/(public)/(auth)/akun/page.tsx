@@ -30,6 +30,7 @@ interface Profile {
   linkedinUrl: string | null;
   instagram: string | null;
   profilePublic: boolean;
+  openToMentor: boolean;
   claimStatus: MemberStatus | null;
   claimAngkatan: number | null;
   claimAt: string | null;
@@ -144,6 +145,7 @@ function ProfileForm({
   const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedinUrl ?? "");
   const [instagram, setInstagram] = useState(profile.instagram ?? "");
   const [profilePublic, setProfilePublic] = useState(profile.profilePublic);
+  const [openToMentor, setOpenToMentor] = useState(profile.openToMentor);
   const isPurna = profile.memberStatus === "PURNA";
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,7 +166,7 @@ function ProfileForm({
           linkedinUrl: linkedinUrl.trim(),
           instagram: instagram.trim(),
           // Hanya dikirim untuk Purna; backend menolak profil publik untuk Aktif.
-          ...(isPurna && { profilePublic }),
+          ...(isPurna && { profilePublic, openToMentor }),
         })
       ).data,
     onSuccess: (updated) => {
@@ -287,6 +289,22 @@ function ProfileForm({
               <span className="font-semibold text-slate-900">Tampilkan profil lengkap ke publik</span>
               <span className="mt-0.5 block text-xs text-slate-500">
                 Pendidikan, pekerjaan, keahlian, dan tautan Anda bisa dilihat siapa pun, termasuk mesin pencari.
+              </span>
+            </span>
+          </label>
+        )}
+        {isPurna && (
+          <label className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4 text-sm">
+            <input
+              type="checkbox"
+              checked={openToMentor}
+              onChange={(e) => setOpenToMentor(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-rose-600"
+            />
+            <span>
+              <span className="font-semibold text-slate-900">Bersedia menjadi mentor</span>
+              <span className="mt-0.5 block text-xs text-slate-500">
+                Anggota bisa menemukan Anda di Jaringan Paskatema dan menghubungi lewat tautan di profil (LinkedIn/Instagram).
               </span>
             </span>
           </label>

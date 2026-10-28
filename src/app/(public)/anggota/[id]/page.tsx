@@ -71,6 +71,11 @@ export default function MemberProfilePage() {
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${MEMBER_STATUS_CLASS[data.memberStatus]}`}>
                     {MEMBER_STATUS_LABEL[data.memberStatus]}
                   </span>
+                  {data.detailsVisible && data.openToMentor && (
+                    <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                      Bersedia jadi mentor
+                    </span>
+                  )}
                 </div>
                 {data.detailsVisible && (data.linkedinUrl || data.instagram) && (
                   <div className="mt-4 flex flex-wrap gap-2">
