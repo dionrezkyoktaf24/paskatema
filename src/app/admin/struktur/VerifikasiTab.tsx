@@ -18,6 +18,15 @@ export interface MembershipClaim {
   claimGraduationYear: number | null;
   claimNote: string | null;
   claimAt: string;
+  /** Akun lain yang kemungkinan orang yang sama (peringatan, bukan penolakan). */
+  possibleDuplicates: {
+    id: string;
+    name: string;
+    email: string;
+    angkatan: number | null;
+    kind: "verified" | "pending";
+    reasons: string[];
+  }[];
 }
 
 export const MEMBERSHIP_CLAIMS_KEY = ["admin-membership-claims"];
@@ -99,7 +108,13 @@ function AngkatanGroup({ angkatan, items }: { angkatan: number; items: Membershi
         <button
           onClick={() => {
             setMessage(null);
-            if (window.confirm(`Setujui semua ${items.length} pengajuan Angkatan ${angkatan}?`)) approveAll.mutate();
+            const flagged = items.filter((c) => c.possibleDuplicates.length > 0).length;
+            const msg =
+              `Setujui semua ${items.length} pengajuan Angkatan ${angkatan}?` +
+              (flagged ? `
+
+⚠ ${flagged} pengajuan ditandai kemungkinan akun ganda. Sebaiknya periksa dulu satu per satu.` : "");
+            if (window.confirm(msg)) approveAll.mutate();
           }}
           disabled={approveAll.isPending}
           className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
@@ -163,6 +178,22 @@ function ClaimCard({ claim }: { claim: MembershipClaim }) {
         </p>
       )}
 
+      {claim.possibleDuplicates.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <p className="font-semibold">⚠ Kemungkinan akun ganda dengan:</p>
+          <ul className="mt-1 space-y-0.5">
+            {claim.possibleDuplicates.map((d) => (
+              <li key={d.id}>
+                <b>{d.name}</b> ({d.email}
+                {d.angkatan ? `, Angkatan ${d.angkatan}` : ""}) — {d.kind === "verified" ? "sudah terverifikasi" : "juga sedang mengajukan"};{" "}
+                {d.reasons.join(", ")}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-amber-700">Bila orang yang sama, tolak pengajuan ini.</p>
+        </div>
+      )}
+
       {error && <p className="text-sm text-rose-600">{error}</p>}
 
       <div className="flex flex-wrap items-end gap-2 border-t border-slate-100 pt-3">
@@ -190,6 +221,12 @@ function ClaimCard({ claim }: { claim: MembershipClaim }) {
         <button
           onClick={() => {
             setError(null);
+            if (
+              claim.possibleDuplicates.length > 0 &&
+              !window.confirm(`${claim.name} ditandai kemungkinan akun ganda. Tetap setujui?`)
+            ) {
+              return;
+            }
             review.mutate(true);
           }}
           disabled={review.isPending || !angkatan}

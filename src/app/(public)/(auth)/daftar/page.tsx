@@ -139,6 +139,7 @@ export default function DaftarPage() {
               onChange={(e) => setEmail(e.target.value)}
               className={authInputClass}
             />
+            <span className="block text-xs text-slate-400">Gunakan email pribadi (mis. Gmail), bukan email sekolah yang dihapus setelah lulus.</span>
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-slate-700">

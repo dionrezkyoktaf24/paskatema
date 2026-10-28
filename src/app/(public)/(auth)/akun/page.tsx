@@ -12,6 +12,7 @@ import { canUsePanel, homeForRole, panelLabel, type UserRole } from "@/lib/roles
 import { authInputClass } from "@/components/auth/AuthCard";
 import { MemberGallery } from "@/components/auth/MemberGallery";
 import { MembershipClaimCard } from "@/components/auth/MembershipClaimCard";
+import { AccountSecurityCard } from "@/components/auth/AccountSecurityCard";
 import { apiErrorMessage } from "@/lib/api-error";
 import { MEMBER_STATUS_LABEL, type MemberStatus } from "@/services/member";
 
@@ -119,6 +120,8 @@ export default function AkunPage() {
         )}
 
         {profile.data && <MemberGallery angkatan={profile.data.angkatan} />}
+
+        {profile.data && <AccountSecurityCard email={profile.data.email} />}
       </div>
     </main>
   );
