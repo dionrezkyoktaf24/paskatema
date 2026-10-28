@@ -75,7 +75,12 @@ export default function LoginPage() {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-slate-700">Password</span>
+            <span className="flex items-center justify-between text-sm font-medium text-slate-700">
+              Password
+              <Link href="/lupa-password" className="text-xs font-semibold text-rose-600 hover:underline">
+                Lupa password?
+              </Link>
+            </span>
             <PasswordInput
               required
               autoComplete="current-password"

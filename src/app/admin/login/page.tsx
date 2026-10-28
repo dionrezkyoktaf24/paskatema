@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
@@ -72,7 +73,12 @@ export default function AdminLoginPage() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-300">Password</span>
+              <span className="flex items-center justify-between text-sm font-medium text-slate-300">
+                Password
+                <Link href="/lupa-password" className="text-xs font-semibold text-rose-400 hover:underline">
+                  Lupa password?
+                </Link>
+              </span>
               <PasswordInput
                 tone="dark"
                 id="admin-password"

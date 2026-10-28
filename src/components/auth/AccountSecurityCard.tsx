@@ -113,6 +113,7 @@ function ChangeEmailForm({ currentEmail, onDone }: { currentEmail: string; onDon
 }
 
 function ChangePasswordForm({ onDone }: { onDone: () => void }) {
+  const { user } = useAuth();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -121,14 +122,16 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
   const save = useMutation({
     mutationFn: async () =>
       (
-        await apiClient.patch("/auth/change-password", {
+        await apiClient.patch<{ access_token?: string }>("/auth/change-password", {
           oldPassword,
           newPassword,
           confirmNewPassword: confirm,
         })
       ).data,
-    onSuccess: () => {
-      setMessage({ ok: true, text: "Password berhasil diganti." });
+    onSuccess: (data) => {
+      // Login di perangkat lain otomatis keluar; perangkat ini memakai token baru.
+      if (data.access_token && user) setAuth(data.access_token, user);
+      setMessage({ ok: true, text: "Password berhasil diganti. Login di perangkat lain otomatis keluar." });
       setOldPassword("");
       setNewPassword("");
       setConfirm("");

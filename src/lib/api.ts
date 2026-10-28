@@ -25,7 +25,7 @@ apiClient.interceptors.response.use(
       const { pathname } = window.location;
       // Halaman auth menampilkan error 401 (mis. password salah) sendiri;
       // redirect di sini akan me-reload halaman dan menghapus pesan error.
-      const isAuthPage = ["/admin/login", "/login", "/daftar"].includes(pathname);
+      const isAuthPage = ["/admin/login", "/login", "/daftar", "/lupa-password", "/reset-password"].includes(pathname);
       if (!isAuthPage) {
         window.location.href = pathname.startsWith("/admin")
           ? "/admin/login"
