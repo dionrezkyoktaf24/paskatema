@@ -65,7 +65,7 @@ export function DeveloperSection() {
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Syafi Aqil</p>
             <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950">UI/UX Designer</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600">
-              Merancang sistem visual "Vibrant Scholastic" yang memadukan kedisiplinan militeristik dengan dinamisme modernitas situs.
+              Merancang sistem visual &ldquo;Vibrant Scholastic&rdquo; yang memadukan kedisiplinan militeristik dengan dinamisme modernitas situs.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Figma</span>

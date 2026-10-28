@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navLinks } from "@/lib/constants";
+import { moreNavLinks, navLinks } from "@/lib/constants";
+import { MoreMenu } from "@/components/navbar/MoreMenu";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { LogoBadge } from "@/components/ui/LogoBadge";
@@ -48,6 +49,7 @@ export function Navbar() {
               </Link>
             );
           })}
+          <MoreMenu />
         </nav>
 
         <div className="hidden shrink-0 items-center gap-3 xl:flex">
@@ -75,7 +77,7 @@ export function Navbar() {
           className="border-t border-slate-200 bg-white px-6 pb-6 xl:hidden"
         >
           <div className="flex flex-col gap-4 py-4">
-            {links.map((item) => (
+            {[...links, ...moreNavLinks].map((item) => (
               <Link key={item.href} href={item.href} className="text-base font-medium text-slate-700 hover:text-rose-600" onClick={() => setIsOpen(false)}>
                 {item.label}
               </Link>

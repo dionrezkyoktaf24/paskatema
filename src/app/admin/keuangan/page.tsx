@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Loader2, TrendingUp, TrendingDown, Wallet } from 
 import { apiClient } from "@/lib/api";
 import { Modal } from "@/components/admin/Modal";
 import { useAuth } from "@/contexts/AuthContext";
+import { QrisSettingsCard } from "@/components/qris/QrisSettingsCard";
 
 type TransactionType = "INCOME" | "EXPENSE";
 
@@ -250,6 +251,8 @@ export default function AdminKeuanganPage() {
           </button>
         )}
       </div>
+
+      <QrisSettingsCard />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex items-center gap-4 rounded-[24px] border border-slate-200 bg-white p-5">

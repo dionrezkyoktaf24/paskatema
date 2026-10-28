@@ -3,8 +3,17 @@ export const navLinks = [
   { label: "Profil & Sejarah", href: "/profil" },
   { label: "Struktur & Divisi", href: "/struktur" },
   { label: "Berita", href: "/berita" },
+  { label: "Event", href: "/event" },
   { label: "Anggota", href: "/anggota" },
   { label: "Galeri", href: "/galeri" },
+];
+
+/** Halaman yang lebih jarang dibuka: di menu "Lainnya" (desktop). */
+export const moreNavLinks = [
+  { label: "Prestasi", href: "/prestasi" },
+  { label: "Pemilihan", href: "/voting" },
+  { label: "Donasi & Pembayaran", href: "/qris" },
+  { label: "Forum Anggota", href: "/forum" },
   { label: "Administrasi", href: "/administrasi" },
   { label: "Developer", href: "/developer" },
 ];
@@ -78,6 +87,7 @@ export const footerLinks = [
   { label: "Struktur", href: "/struktur" },
   { label: "Event", href: "/event" },
   { label: "Pendaftaran", href: "/pendaftaran" },
+  { label: "Donasi & Pembayaran (QRIS)", href: "/qris" },
 ];
 
 export const contactInfo = {

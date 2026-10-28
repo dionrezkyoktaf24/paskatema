@@ -16,8 +16,8 @@ export function ImageLightbox({ images, index, onClose, onPrev, onNext }: ImageL
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") onPrev && onPrev();
-      if (e.key === "ArrowRight") onNext && onNext();
+      if (e.key === "ArrowLeft") onPrev?.();
+      if (e.key === "ArrowRight") onNext?.();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
