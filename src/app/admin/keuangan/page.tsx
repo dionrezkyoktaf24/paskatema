@@ -8,6 +8,7 @@ import { apiClient } from "@/lib/api";
 import { Modal } from "@/components/admin/Modal";
 import { useAuth } from "@/contexts/AuthContext";
 import { QrisSettingsCard } from "@/components/qris/QrisSettingsCard";
+import { PaymentsCard } from "@/components/qris/PaymentsCard";
 
 type TransactionType = "INCOME" | "EXPENSE";
 
@@ -24,6 +25,8 @@ interface TransactionItem {
   period: { id: string; name: string } | null;
   event: { id: string; title: string } | null;
   createdBy: { id: string; name: string } | null;
+  /** Terisi = otomatis dari pembayaran QRIS yang dikonfirmasi. */
+  payment: { id: string; uniqueCode: number; payerName: string } | null;
 }
 
 interface TransactionListResponse {
@@ -92,12 +95,13 @@ export default function AdminKeuanganPage() {
   const canEdit = user?.role === "BENDAHARA";
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<TransactionType | "">("");
+  const [sourceFilter, setSourceFilter] = useState<"" | "MANUAL" | "OTOMATIS">("");
 
   const list = useQuery({
-    queryKey: ["admin-transaction", page, typeFilter],
+    queryKey: ["admin-transaction", page, typeFilter, sourceFilter],
     queryFn: async () => {
       const response = await apiClient.get<TransactionListResponse>("/transaction", {
-        params: { page, limit: 15, type: typeFilter || undefined },
+        params: { page, limit: 15, type: typeFilter || undefined, source: sourceFilter || undefined },
       });
       return response.data;
     },
@@ -254,6 +258,8 @@ export default function AdminKeuanganPage() {
 
       <QrisSettingsCard />
 
+      <PaymentsCard canConfirm={canEdit} />
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex items-center gap-4 rounded-[24px] border border-slate-200 bg-white p-5">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
@@ -291,8 +297,8 @@ export default function AdminKeuanganPage() {
       </div>
 
       <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
-          <span className="text-sm font-semibold text-slate-700">Rincian Transaksi</span>
+        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
+          <span className="mr-auto text-sm font-semibold text-slate-700">Rincian Transaksi</span>
           <select
             value={typeFilter}
             onChange={(e) => {
@@ -304,6 +310,19 @@ export default function AdminKeuanganPage() {
             <option value="">Semua jenis</option>
             <option value="INCOME">Pemasukan</option>
             <option value="EXPENSE">Pengeluaran</option>
+          </select>
+          <select
+            value={sourceFilter}
+            onChange={(e) => {
+              setSourceFilter(e.target.value as "" | "MANUAL" | "OTOMATIS");
+              setPage(1);
+            }}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-rose-400"
+            aria-label="Sumber pencatatan"
+          >
+            <option value="">Manual &amp; otomatis</option>
+            <option value="MANUAL">Manual (bendahara)</option>
+            <option value="OTOMATIS">Otomatis (QRIS)</option>
           </select>
         </div>
         <div className="overflow-x-auto">
@@ -344,11 +363,18 @@ export default function AdminKeuanganPage() {
                   {item.period && (
                     <span className="ml-2 text-xs text-slate-400">· {item.period.name}</span>
                   )}
-                  {item.createdBy && (
-                    <span className="block text-xs font-normal text-slate-400">
-                      Dicatat oleh {item.createdBy.name}
-                    </span>
-                  )}
+                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs font-normal text-slate-400">
+                    {item.payment ? (
+                      <span className="rounded-full bg-sky-50 px-2 py-0.5 font-semibold text-sky-700">Otomatis · QRIS</span>
+                    ) : (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">Manual</span>
+                    )}
+                    {item.payment
+                      ? `dikonfirmasi ${item.createdBy?.name ?? ""}`
+                      : item.createdBy
+                        ? `dicatat oleh ${item.createdBy.name}`
+                        : ""}
+                  </span>
                 </td>
                 <td className="max-w-[10rem] truncate px-5 py-4 text-slate-600">
                   {item.vendorName ?? "—"}
