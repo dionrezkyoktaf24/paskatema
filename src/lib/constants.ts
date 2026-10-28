@@ -89,6 +89,7 @@ export const footerLinks = [
   { label: "Event", href: "/event" },
   { label: "Pendaftaran", href: "/pendaftaran" },
   { label: "Donasi & Pembayaran (QRIS)", href: "/qris" },
+  { label: "AD/ART", href: "/administrasi#ad-art" },
 ];
 
 export const contactInfo = {

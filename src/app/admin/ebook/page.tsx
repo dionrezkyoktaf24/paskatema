@@ -7,12 +7,14 @@ import { useCrudResource } from "@/hooks/useCrudResource";
 import { Modal } from "@/components/admin/Modal";
 import { MediaPicker } from "@/components/admin/MediaPicker";
 import type { MediaItem } from "@/services/media";
+import { DOCUMENT_CATEGORIES, DOCUMENT_CATEGORY_LABEL, type DocumentCategory } from "@/services/documents";
 
 interface EbookItem {
   id: string;
   title: string;
   description: string | null;
   fileId: string;
+  category: DocumentCategory;
   file: MediaItem;
 }
 
@@ -20,6 +22,7 @@ interface EbookFormValues {
   title: string;
   description?: string;
   fileId: string;
+  category: DocumentCategory;
 }
 
 export default function AdminEbookPage() {
@@ -33,12 +36,14 @@ export default function AdminEbookPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<MediaItem | null>(null);
+  const [category, setCategory] = useState<DocumentCategory>("MATERI");
   const [formError, setFormError] = useState<string | null>(null);
 
   function openCreate() {
     setTitle("");
     setDescription("");
     setFile(null);
+    setCategory("MATERI");
     setFormError(null);
     setEditing("new");
   }
@@ -47,6 +52,7 @@ export default function AdminEbookPage() {
     setTitle(item.title);
     setDescription(item.description ?? "");
     setFile(item.file);
+    setCategory(item.category);
     setFormError(null);
     setEditing(item);
   }
@@ -64,6 +70,7 @@ export default function AdminEbookPage() {
       title,
       description: description || undefined,
       fileId: file.id,
+      category,
     };
 
     try {
@@ -106,6 +113,7 @@ export default function AdminEbookPage() {
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-5 py-3">Judul</th>
+              <th className="px-5 py-3">Kategori</th>
               <th className="px-5 py-3">File</th>
               <th className="px-5 py-3 text-right">Aksi</th>
             </tr>
@@ -113,14 +121,14 @@ export default function AdminEbookPage() {
           <tbody>
             {list.isLoading && (
               <tr>
-                <td colSpan={3} className="px-5 py-8 text-center text-slate-400">
+                <td colSpan={4} className="px-5 py-8 text-center text-slate-400">
                   Memuat...
                 </td>
               </tr>
             )}
             {list.data?.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-5 py-8 text-center text-slate-400">
+                <td colSpan={4} className="px-5 py-8 text-center text-slate-400">
                   Belum ada e-book.
                 </td>
               </tr>
@@ -129,6 +137,15 @@ export default function AdminEbookPage() {
               <tr key={item.id} className="border-t border-slate-100">
                 <td className="max-w-sm truncate px-5 py-4 font-medium text-slate-900">
                   {item.title}
+                </td>
+                <td className="whitespace-nowrap px-5 py-4">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      item.category === "AD_ART" ? "bg-rose-50 text-rose-700" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {DOCUMENT_CATEGORY_LABEL[item.category]}
+                  </span>
                 </td>
                 <td className="max-w-xs truncate px-5 py-4 text-slate-600">
                   {item.file?.fileName ?? "—"}
@@ -168,6 +185,21 @@ export default function AdminEbookPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
               />
+            </label>
+
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-slate-700">Kategori</span>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as DocumentCategory)}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+              >
+                {DOCUMENT_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="block space-y-2">
