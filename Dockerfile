@@ -4,7 +4,7 @@
 # Stage 1: deps — install dependency saja (layer terpisah supaya di-cache
 # dan tidak perlu di-reinstall ulang kalau cuma source code yang berubah).
 ########################################
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 # Beberapa native binding yang dipakai Next.js (mis. SWC) butuh shim glibc
 # ini di base image Alpine (musl) — rekomendasi resmi Next.js untuk Docker.
 RUN apk add --no-cache libc6-compat
@@ -15,7 +15,7 @@ RUN npm ci
 ########################################
 # Stage 2: builder — compile Next.js (output: "standalone" di next.config.ts).
 ########################################
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -26,7 +26,7 @@ RUN npm run build
 # Stage 3: runner — image production, cuma isi output standalone Next.js
 # (server bundle + node_modules minimal yang benar-benar dipakai).
 ########################################
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
